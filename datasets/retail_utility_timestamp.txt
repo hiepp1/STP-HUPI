@@ -1,0 +1,2577 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>SPMF: A Java Open-Source Data Mining Library</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+<link rel="stylesheet" href="assets/css/main.css" />
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+<link rel="icon" href="favicon.png">
+<link rel="icon" sizes="57x57" href="favicon-32x32.png">
+<link rel="icon" sizes="57x57" href="favicon-57x57.png">
+<link rel="icon" sizes="72x72" href="favicon-72x72.png">
+<link rel="icon" sizes="76x76" href="favicon-76x76.png">
+<link rel="icon" sizes="114x114" href="favicon-114x114.png">
+<link rel="icon" sizes="120x120" href="favicon-120x120.png">
+<link rel="icon" sizes="144x144" href="favicon-144x144.png">
+<link rel="icon" sizes="152x152" href="favicon-152x152.png">
+<meta name="msapplication-TileColor" content="#FFFFFF">	
+<meta name="msapplication-TileImage" content="favicon-144x144.png">
+<meta name="application-name" content="Website Title">
+</head>
+<body class="is-preload">
+<div id="content">
+ <div class="inner">
+  <article class="box post post-excerpt">
+   <html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=windows-1252">
+    <style type="text/css">
+<!--
+.style1 {font-weight: bold}
+-->
+    </style>
+  </head>
+  <body>
+    <h2 class="centered">Datasets </h2>
+    <p>The SPMF software natively uses <strong>text files</strong> as input.
+      Some small examples of text files that can be used with each algorithm are
+      described in the <a href="https://www.philippe-fournier-viger.com/spmf/index.php?link=documentation.php">documentation</a>
+      of SPMF. These sample input files can be downloaded from the download page
+      (<a href="test_files.zip">test_files.zip)</a> for the release version of
+      SPMF, and are included with the source code, for the source code version
+      of SPMF. However, these datasets are quite small. For this reason, this
+      webpage provides larger datasets that can be used with SPMF and that are
+      often used in the data mining litterature for evaluating and comparing
+      algorithm performance. Unless otherwise indicated, the datasets are in
+      SPMF format.</p>
+    <p>The <strong>datasets</strong> are divided in the following <strong>categories</strong>: </p>
+    <ul>
+      <li><span class="centered"><a href="#d1">Datasets for Sequential Pattern Mining / Sequential
+      Rule Mining / Sequence Prediction</a></span>
+        <ul>
+          <li><a href="#r1">Real-life datasets in SPMF format</a></li>
+          <li><a href="#r2">A collection of 30 books converted to SPMF format</a></li>
+          <li><a href="#malware">Sequences of API calls of malware programs</a> </li>
+          <li><a href="#mooc">Sequences of MOOC data with timestamps </a></li>
+          <li><a href="#r3">Synthetic datasets</a></li>
+          <li><a href="#timeintervals">Datasets of time-interval sequences</a> </li>
+        </ul>
+      </li>
+      <li><a href="#d2">Datasets for Frequent Itemset
+        mining / Association Rule Mining / Periodic pattern mining /
+      Frequent episode mining)</a>
+        <ul>
+          <li><a href="#v1">Datasets in SPMF format</a></li>
+          <li><a href="#v2">Synthetic datasets</a></li>
+          <li><a href="#v3">Real-life datasets in SPMF format, having timestamps</a></li>
+          <li><a href="#v4">          Real-life datasets in ARFF format</a></li>
+        </ul>
+      </li>
+      <li><span class="centered"><a href="#d3">Datasets for </a></span><a href="#d3">High-Utility Pattern
+      Mining</a>
+        <ul>
+          <li><a href="#c1">Real-life transaction datasets in SPMF format with real utility values </a></li>
+          <li><a href="#c2"> Real-life transaction datasets in SPMF format having synthetic (fake) utility values </a></li>
+          <li><a href="#c3">Datasets in SPMF format having utility values and timestamps</a></li>
+          <li><a href="#c4">Datasets for high utility itemset mining with negative unit profit values</a></li>
+          <li><a href="#c5">Datasets for high utility quantitative itemset mining</a></li>
+          <li><a href="#c6">Datasets for on-shelf high-utility itemset mining with negative unit profit values</a></li>
+          <li><a href="#c7">Datasets for high-utility sequential rule mining or high-utility sequential pattern mining</a><br>
+          </li>
+        </ul>
+      </li>
+      <li><a href="#d4">Datasets for  Cost-effective
+      Pattern Mining (with utility and cost)</a></li>
+      <li><a href="#d5">Graph datasets for graph pattern mining 
+        </a>
+        <ul>
+          <li><span class="centered"><a href="#d6">Datasets for </a></span><a href="#d6"> mining subgraphs in
+            a graph database </a></li>
+          <li><span class="centered"><a href="#d7">Datasets for </a></span><a href="#d7"> mining subgraphs in
+            a dynamic attributed graph</a></li>
+        </ul>
+      </li>
+      <li><a href="#d8">Datasets for clustering</a></li>
+    </ul>
+    <h3 class="centered"><a name="d1"></a>Datasets for Sequential Pattern Mining / Sequential
+      Rule Mining / Sequence Prediction</h3>
+    <h4><strong><a name="r1"></a>Real-life datasets in SPMF format</strong></h4>
+    <table border="1">
+          <tbody>
+            <tr>
+              <td bgcolor="#FFFFCC"><strong>Dataset name </strong></td>
+              <td bgcolor="#FFFFCC"><strong>Description</strong></td>
+              <td bgcolor="#FFFFCC"><strong>Sequence count </strong></td>
+              <td bgcolor="#FFFFCC"><strong>Item count </strong></td>
+              <td bgcolor="#FFFFCC"><strong>Average sequence length </strong></td>
+              <td bgcolor="#FFFFCC"><strong>Has item names? </strong></td>
+            </tr>
+            <tr>
+              <td><em><a href="https://www.philippe-fournier-viger.com/spmf/datasets/BMS1_spmf">BMSWebView1
+                (Gazelle) ( KDD CUP 2000)</a><a href="https://www.philippe-fournier-viger.com/spmf/datasets/retail.txt"></a></em></td>
+              <td><p>This dataset was used in KDD CUP 2000. It contains
+                clickstream data from an e-commerce</p>
+                  <p>In this dataset, there are some long sequences. For example,
+                    318 sequences contains more than 20 items.<br>
+                </p></td>
+              <td>59,601</td>
+              <td>497</td>
+              <td>2.42</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/BMS2.txt">BMSWebView2
+                (Gazelle) ( KDD CUP 2000)</a></td>
+              <td>This dataset was used in KDD CUP 2000. It contains clickstream
+                data from an e-commerce</td>
+              <td>77,512 </td>
+              <td>3,340</td>
+              <td>4.62</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><p><a href="https://www.philippe-fournier-viger.com/spmf/datasets/kosarak_sequences.txt">Kosarak</a></p>
+                  <p>a subset of only 10 000 sequences: <a href="https://www.philippe-fournier-viger.com/spmf/datasets/Kosarak10k.txt">here</a> <br>
+                    a subset of 25 000 sequences: <a href="https://www.philippe-fournier-viger.com/spmf/datasets/Kosarak25k.txt">here</a>. </p></td>
+              <td>This is a very large dataset containing 990 000 sequences of
+                click-stream data from an hungarian news portal.<br>
+                The dataset was converted in SPMF format using the original data
+                from: http://fimi.ua.ac.be/data/. <br>
+                (<strong>2020-1-10</strong>: <em>the kosarak dataset file has
+                  been updated as someone informed me that some sequences were
+                  missing</em>)</td>
+              <td>990,000</td>
+              <td>41,270</td>
+              <td>8.1</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="datasets/SIGN.txt">Sign</a></td>
+              <td>a dataset of sign language utterance containing approximately
+                800 sequences<br>
+                The original dataset file in another format can be obtained <a
+
+                  href="http://cs-people.bu.edu/panagpap/Research/asl_mining.htm">here</a> with more details on this dataset.</td>
+              <td>~800</td>
+              <td>267</td>
+              <td>51.997</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="datasets/BIBLE.txt">Bible</a></td>
+              <td><p>This dataset is a conversion of the Bible into a sequence
+                database (each word is an item). </p></td>
+              <td>36,369</td>
+              <td>13,905</td>
+              <td> 21.6</td>
+              <td><strong>Yes<br>
+              </strong><a href="datasets/bible_with_items.txt">Bible_with_items</a></td>
+            </tr>
+            <tr>
+              <td><a href="datasets/LEVIATHAN.txt">Leviathan</a></td>
+              <td>This dataset is a conversion of the novel Leviathan by Thomas
+                Hobbes (1651) as a sequence database (each word is an item).</td>
+              <td>5,834</td>
+              <td>9,025</td>
+              <td>33.8</td>
+              <td><strong>Yes<br>
+              </strong><a href="datasets/leviathan_with_items.txt">Leviathan_with_items</a></td>
+            </tr>
+            <tr>
+              <td><a href="datasets/MSNBC.txt">MSNBC</a></td>
+              <td> a dataset of click-stream data from the MSNBC website,
+                converted from original data from the UCI repository.<br>
+                The shortest sequences have been removed to keep only 31,790
+                sequences. If you need the full dataset, you can <a href="datasets/MSNBC_SPMF.zip">download
+                  it</a>.</td>
+              <td>989,818</td>
+              <td>17</td>
+              <td>13.23</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/FIFA.txt">FIFA</a></td>
+              <td>Click stream data from the website of FIFA World Cup 98 </td>
+              <td>20,450</td>
+              <td> 2,990</td>
+              <td>34.74</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="datasets/BIKE.txt">BIKE</a></td>
+              <td><p>This contains sequences of locations where shared bikes where
+                parked in a city. Each item represents a bike sharing station
+                and each sequence indicate the different locations of a bike
+                over time.</p>
+                  <p>The dataset was obtained from the Github of Andrea Tonon, and
+                    is a transformation from Kaggle data
+                    (https://www.kaggle.com/cityofLA/los-angeles-metro-bike-share-trip-data) </p></td>
+              <td>21,078</td>
+              <td>67</td>
+              <td>7.27</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/MT745584_SPMF.txt">MT745584</a><strong> (COVID-19 genome sequence) <a href="dataset_proof_sequence.zip"><img
+
+                      src="new.gif" alt="new"></a></strong></td>
+              <td>This is the sequence of nucleotide of the MT745584 strain of
+                the COVID-19 coronavirus, collected on 2020-07-13 in Bahrain.
+                The dataset has been obtained from public database and converted
+                to the SPMF format by M. Saqib Nawaz for his paper: <a href="http%7C//www.philippe-fournier-viger.com/2021_APIN_Using_Artificial_Intelligence_Techniques_for_COVID_19_Genome_Analysis__2_%20%284%29.pdf">Using
+                  Artificial Intelligence Techniques for COVID-19 Genome
+                  Analysis</a>. More datasets related to this paper and code can
+                be found on <a href="https://github.com/saqibdola/SPM-MA4GSA">github</a>. </td>
+              <td>497</td>
+              <td>4</td>
+              <td>16</td>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/MT745584.txt">Original
+                data </a></td>
+            </tr>
+            <tr>
+              <td><a href="dataset_proof_sequence.zip">ProofSequences <img src="new.gif"
+
+                    alt="new"></a></td>
+              <td> a dataset containing sequences of proof steps for
+                mathematical proofs. The dataset is described in the paper: <br>
+                Nawaz, M. S., Sun, M., Fournier-Viger, P. (2019). Proof Guidance
+                in PVS with Sequential Pattern Mining. Proc. of 9th Intern.
+                Conf. Fundamentals of Software Engineering (FSEN 2019), 15
+                pages, Springer, LNCS.</td>
+              <td>35</td>
+              <td>13</td>
+              <td>12.34</td>
+              <td><strong>Yes</strong></td>
+            </tr>
+            <tr>
+              <td><a href="datasets/e_shop.txt">E-Shop</a><a href="dataset_proof_sequence.zip"><img
+
+                    src="new.gif" alt="new"></a></td>
+              <td>Click-stream data for online shopping. The dataset contains
+                sequences of clicks (clickstream) from an online store offering
+                clothing for pregnant women. <br>
+                        <br>
+                        <strong>Notes: </strong>Dataset cleaned, pre-processed and
+                transformed by<strong> Frederic Flouvat </strong>based on data
+                from <a href="http://archive.ics.uci.edu/ml/datasets/clickstream+data+for+online+shoppinghttp://archive.ics.uci.edu/ml/datasets/clickstream+data+for+online+shopping">UCI
+                  repository</a>.<br>
+                A <a href="https://github.com/flouvat/Sequential-databases">github
+                  project</a> by F. Flouvat contains details and code about the
+                transformation.<br>
+                This data is interesting for algorithm testing because it is <em>sequence
+                  of itemsets instead of sequence of items.<br>
+                  Average number of items per itemset : 9.0<br>
+                </em></td>
+              <td>24026</td>
+              <td>317</td>
+              <td>61.98</td>
+              <td><strong>Yes<br>
+                    <br>
+                </strong><a href="file:///D:/WEB/Site%20Web%202/spmf/datasets/e_shop.json">Item
+                  meanings (JSON format)</a><strong><br>
+                        </strong></td>
+            </tr>
+            <tr>
+              <td><a href="datasets/microblogPCU.txt">MicroblogPCU</a><a href="dataset_proof_sequence.zip"><img
+
+                    src="new.gif" alt="new"></a></td>
+              <td>Datasets about spam in micro-blogs.&nbsp;&nbsp; <br>
+                  <br>
+                  <strong>Notes: </strong>Dataset cleaned, pre-processed and
+                transformed by<strong> Frederic Flouvat </strong>based on data
+                from <a href="http://archive.ics.uci.edu/ml/datasets/microblogPCU">UCI
+                  repository</a>.<br>
+                A <a href="https://github.com/flouvat/Sequential-databases">github
+                  project</a> by F. Flouvat contains details and code about the
+                transformation.<br>
+                This data is interesting for algorithm testing because it is <em>sequence
+                  of itemsets instead of sequence of items.<br>
+                  Average number of items per itemset : 6.85<br>
+                </em></td>
+              <td>429</td>
+              <td>50505</td>
+              <td>296.37</td>
+              <td><strong>Yes<br>
+                </strong><a href="datasets/microblogPCU.json">Item meanings
+                  (JSON format)</a><strong></strong></td>
+            </tr>
+            <tr>
+              <td><a href="datasets/online_retail_II_all_products.txt">OnlineRetail_II_all</a><a
+
+                  href="dataset_proof_sequence.zip"><img src="new.gif" alt="new"></a></td>
+              <td>This Online Retail II data set contains all the transactions
+                occurring for a UK-based and registered, non-store online retail
+                between 01/12/2009 and 09/12/2011.The company mainly sells
+                unique all-occasion gift-ware. Many customers of the company are
+                wholesalers.<br>
+                        <br>
+                        <strong>Notes: </strong>Dataset cleaned, pre-processed and
+                transformed by<strong> Frederic Flouvat </strong>based on data
+                from <a href="http://archive.ics.uci.edu/ml/datasets/Online+Retail+IIhttp://archive.ics.uci.edu/ml/datasets/Online+Retail+II">UCI
+                  repository.</a><br>
+                A <a href="https://github.com/flouvat/Sequential-databases">github
+                  project</a> by F. Flouvat contains details and code about the
+                transformation.<br>
+                This data is interesting for algorithm testing because it is <em>sequence
+                  of itemsets instead of sequence of items.<br>
+                  Average number of items per itemset : 22.775<br>
+                </em></td>
+              <td>4383</td>
+              <td>41431</td>
+              <td>32.154</td>
+              <td><strong>Yes<br>
+                </strong><a href="datasets/online_retail_II_all_products.json">Item
+                  meanings (JSON format)</a><strong></strong></td>
+            </tr>
+            <tr>
+              <td><a href="datasets/online_retail_II_best_products.txt">OnlineRetail_II_best</a><a
+
+                  href="dataset_proof_sequence.zip"><img src="new.gif" alt="new"></a></td>
+              <td><p>This Online Retail II data set contains all the transactions
+                occurring for a UK-based and registered, non-store online retail
+                between 01/12/2009 and 09/12/2011.The company mainly sells
+                unique all-occasion gift-ware. Many customers of the company are
+                wholesalers.<br>
+                        <br>
+                        <strong>Notes: </strong>Dataset cleaned, pre-processed and
+                transformed by<strong> Frederic Flouvat </strong>based on data
+                from <a href="http://archive.ics.uci.edu/ml/datasets/Online+Retail+IIhttp://archive.ics.uci.edu/ml/datasets/Online+Retail+IIhttp://archive.ics.uci.edu/ml/datasets/Online+Retail+IIhttp://archive.ics.uci.edu/ml/datasets/Online+Retail+II">UCI
+                  repository.</a><br>
+                A <a href="https://github.com/flouvat/Sequential-databases">github
+                  project</a> by F. Flouvat contains details and code about the
+                transformation.<br>
+                This data is interesting for algorithm testing because it is <em>sequence
+                  of itemsets instead of sequence of items. </em><em><br>
+                    Average number of items per itemset : 9.0 </em></p>
+                <p><em><strong>Note</strong>: The dataset had some errors with respect to the format. It has been fixed (2023-7-15) <a
+
+                  href="dataset_proof_sequence.zip"><img src="new.gif" alt="new"></a><br>
+                </em></p></td>
+              <td>4383</td>
+              <td>10157</td>
+              <td>48.23</td>
+              <td><strong>Yes<br>
+                </strong><a href="datasets/online_retail_II_best_products.json">Item
+                  meanings (JSON format)</a><strong></strong></td>
+            </tr>
+          </tbody>
+  </table>
+        <h4><a name="r2"></a>A collection of 30 books converted to SPMF format (sequences of words or sequence of part-of-speeches) </h4>
+        <p>Below there is a dataset that is a collection of <strong>15 public domain books </strong>that have been <strong>prepared and converted
+            to sequences</strong> by <span class="style1"><a href="https://www.philippe-fournier-viger.com/FLAIRS2016__AUTHORSHIP_ATTRIBUTION.pdf">Jean-Marc
+              Pokou et al</a></span><strong><a href="https://www.philippe-fournier-viger.com/FLAIRS2016__AUTHORSHIP_ATTRIBUTION.pdf">.
+          (2016) </a></strong> to the<strong> SPMF format.</strong> Each book can be used to extract patterns using sequential pattern mining or sequential rule mining algorithms. </p>
+        <p>These
+          books are written by 10 different English novelists from the XIX
+          century. The total number of words/sentences in the corpus of each
+          author is as follows: Catharine Traill (276,829/ 6,588), Emerson Hough
+          (295,166/ 15,643), Henry Addams (447,337/ 14,356), Herman Melville
+          (208,662/ 8,203), Jacob Abbott (179,874/ 5,804), Louisa May Alcott
+          (220,775/ 7,769), Lydia Maria Child (369,222/ 15,159), Margaret Fuller
+          (347,303/ 11,254), Stephen Crane (214,368/ 12,177), and Thornton W.
+          Burgess (55,916/ 2,950). The list of books is:</p>
+        <table border="1">
+          <tbody>
+            <tr>
+              <td  bgcolor="#FFFFCC"><strong>Author</strong></td>
+              <td  bgcolor="#FFFFCC"><strong>Datasets (books) in SPMF
+                format </strong></td>
+            </tr>
+            <tr>
+              <td>Catharine Traill </td>
+              <td>- A Tale of The Rice Lake Plains<br>
+                -Lost in the Backwoods <br>
+                - The Backwoods of Canada </td>
+            </tr>
+            <tr>
+              <td >Emerson Hough</td>
+              <td>- The Girl at the Halfway House<br>
+                - The Law of the Land <br>
+                - The Man Next Door</td>
+            </tr>
+            <tr>
+              <td>Henry Addams </td>
+              <td>- Democracy, an American novel <br>
+                - Mont-Saint-Michel and Chartres<br>
+                - The Education of Henry Adams </td>
+            </tr>
+            <tr>
+              <td>Herman Melville </td>
+              <td>- I and My Chimney <br>
+                -Israel Potter<br>
+                -The Confidence-Man His Masquerade </td>
+            </tr>
+            <tr>
+              <td>Jacob Abbott </td>
+              <td>- Alexander the Great<br>
+                - History of Julius Caesar <br>
+                - Queen Elizabeth</td>
+            </tr>
+            <tr>
+              <td>Louisa May Alcott</td>
+              <td>- Eight Cousins<br>
+                - Rose in Bloom <br>
+                - The Mysterious Key and What Opened </td>
+            </tr>
+            <tr>
+              <td>Lydia Maria Child</td>
+              <td>- A Romance of the Republic <br>
+                -Isaac THoppe <br>
+                -Philothea) </td>
+            </tr>
+            <tr>
+              <td>Margaret Fuller</td>
+              <td>- Life Without and Life Within <br>
+                -Summer on the Lakes, in 1843<br>
+                - Woman in the Nineteenth Century </td>
+            </tr>
+            <tr>
+              <td>Stephen Crane </td>
+              <td>- Active Service <br>
+                - Last Words<br>
+                - The Third Violet </td>
+            </tr>
+            <tr>
+              <td>Thornton WBurgess</td>
+              <td>- The Adventures of Buster Bear <br>
+                - The Adventures of Chatterer the Red Squirrel <br>
+                -The Adventures of Grandfather Frog </td>
+            </tr>
+          </tbody>
+        </table>
+        <p> There are two versions of each datasets : <strong>sequences of words</strong> and <strong>sequences of Part-of-Speeches (POS) </strong>(obtained
+        with the Stanford NLP tagger).</p>
+        <p>Here are the links to download the books:</p>
+        <ul>
+          <li><a href="https://www.philippe-fournier-viger.com/spmf/datasets/pokou/books.zip">Books in SPMF format (sequences of words)</a></li>
+          <li><a href="https://www.philippe-fournier-viger.com/spmf/datasets/pokou/books_posNEW2.zip">Books in SPMF format (sequence of part-of-speeches)</a></li>
+          <li><a href="https://www.philippe-fournier-viger.com/spmf/datasets/pokou/all-books-items.zip">Books in SPMF format with item names (sequence of words)</a></li>
+          <li>   <a href="https://www.philippe-fournier-viger.com/spmf/datasets/pokou/all_pos_itemsNEW2.zip">Books in SPMF format with item names (sequence of part-of-speeches)</a></li>
+          <li><a href="https://www.philippe-fournier-viger.com/spmf/datasets/pokou/all_books_words.zip">Original books as text files           </a></li>
+        </ul>
+        <p>If you use the above <strong>book datasets,</strong> you may want to
+          cite this paper:</p>
+        <p>Pokou J. M., Fournier-Viger, P., Moghrabi, C. (2016). <a href="https://www.philippe-fournier-viger.com/FLAIRS2016__AUTHORSHIP_ATTRIBUTION.pdf">Authorship
+            Attribution Using Small Sets of Frequent Part-of-Speech Skip-grams</a>.
+          Proc. 29th Intern. Florida Artificial Intelligence Research Society
+          Conference (FLAIRS 29), AAAI Press, pp. 86-91</p>
+        <h4><a name="malware" id="malware"></a>Sequences of API calls of malware programs </h4>
+        <p>Here is a  large <strong>dataset  </strong> (<a href="datasets/malware/Malware types in SPMF Format.zip">compressed ZIP file 6 MB - uncompressed 813 MB </a>) <strong>containing the sequences of API calls from different types of malware programs</strong>. <br>
+        This dataset contains 8 files, each corresponding to a different type of malware such as viruses, backdoors and spyware. Each file is a sequence database containing the sequences of API calls of multiple programs of a given type.</p>
+        <p>The table below summarize the information about these 8 files:</p>
+        <table border="1">
+          <tbody>
+            <tr>
+              <td  bgcolor="#FFFFCC"><strong>File</strong></td>
+              <td  bgcolor="#FFFFCC"><strong>Type of malware</strong> </td>
+              <td  bgcolor="#FFFFCC"><strong>Samples (sequences) </strong></td>
+              <td  bgcolor="#FFFFCC"><strong>API calls (distinct items) </strong></td>
+              <td  bgcolor="#FFFFCC"><strong>Maximum sequence length </strong></td>
+              <td  bgcolor="#FFFFCC"><strong>Average sequence length </strong></td>
+            </tr>
+            <tr>
+              <td>Adwaretranslated.txt</td>
+              <td>Adware</td>
+              <td>379</td>
+              <td>212</td>
+              <td>1,450,685</td>
+              <td>6,867</td>
+            </tr>
+            <tr>
+              <td >Backdoortranslated.txt</td>
+              <td>Backdoor</td>
+              <td>1001</td>
+              <td>227</td>
+              <td>1,402,652</td>
+              <td>11,293</td>
+            </tr>
+            <tr>
+              <td>Downloadertranslated.txt</td>
+              <td>Downloader</td>
+              <td>1001</td>
+              <td>232 </td>
+              <td>870,719</td>
+              <td>6,522</td>
+            </tr>
+            <tr>
+              <td>Droppertranslated.txt</td>
+              <td>Dropper</td>
+              <td>891</td>
+              <td>226</td>
+              <td>1,068,329</td>
+              <td>16,008 </td>
+            </tr>
+            <tr>
+              <td>Spywaretranslated.txt</td>
+              <td>Spyware</td>
+              <td>832</td>
+              <td>229</td>
+              <td>1,764,421</td>
+              <td>46,951 </td>
+            </tr>
+            <tr>
+              <td>Trojantranslated.txt</td>
+              <td>Trojan</td>
+              <td>1001</td>
+              <td>232</td>
+              <td>1,232,913</td>
+              <td>13,818</td>
+            </tr>
+            <tr>
+              <td>Virustranslated.txt</td>
+              <td>Virus</td>
+              <td>1001</td>
+              <td>241</td>
+              <td>1,062,231</td>
+              <td>18,370 </td>
+            </tr>
+            <tr>
+              <td>Wormstranslated.txt</td>
+              <td>Worms</td>
+              <td>1001</td>
+              <td>236</td>
+              <td>1,245,582</td>
+              <td>33,614 </td>
+            </tr>
+          </tbody>
+        </table>
+        <p>These datasets can be used with sequential pattern mining algorithms and sequential rule mining algorithms.</p>
+        <p>More information about these datasets can be found in this paper:<br>
+          <br>
+          <em>Nawaz, M. S., Fournier-Viger, P., Nawaz, M. Z., Chen, G., Wu, Y. (2022) MalSPM: Metamorphic Malware Behavior Analysis and Classification using Sequential Pattern Mining. Computers &amp; Security, Elsever, to appear DOI: 10.1016/j.cose.2022.102741</em><br>
+          <br>
+  More data related to this paper can also be found on <a href="https://github.com/saqibdola/MBAwSPM">Github</a>.</p>
+        <h4><strong><a name="mooc" id="mooc"></a>Sequences of MOOC data with timestamps</strong> </h4>
+        <p>This page also provides a time-extended sequence database that contains MOOC data (e-learning data) and can be used with sequential pattern mining algorithms such as SPM_FC_P and SPM_FC_L. It can be downloaded here: <a href="https://www.philippe-fournier-viger.com/spmf/datasets/mooc.txt">mooc.txt        </a>        </p>
+        <p>This dataset was originally a  &ldquo;Course Recommendation&rdquo; dataset   provided by   the MoocData platform but has been transformed by Song et al. in SPMF format. The   original dataset was collected from XuetangX,   one of the largest   MOOC platforms in China. Originally used for course recommendation, the dataset contains the records of 82,535   course enrollment sequences from XuetangX from October   1, 2016 to March 31, 2018. The time span is 547&nbsp;days. The number of courses is 1,302. The number of sequences is 82,535. The length of the longest sequence is 398. The length of the shortest sequence is 3. The average sequence length is 5.19.</p>
+        <p>See this paper for more details about this dataset and how it can be used: </p>
+        <p><em> Song, W., Ye, W., Fournier-Viger, P. (2022). Mining sequential patterns with flexible constraints from MOOC data. Applied Intelligence</em> </p>
+        <h4><strong><a name="r3"></a>Synthetic datasets</strong></h4>
+        <p>To <strong>generate synthetic sequence databases</strong>, you can
+          use the <strong>sequence database generator</strong> provided in SPMF
+          (see this <a href="https://www.philippe-fournier-viger.com/spmf/index.php?link=documentation.php#genseq">example</a>
+          and this <a href="https://www.philippe-fournier-viger.com/spmf/index.php?link=documentation.php#genseqt">example</a>
+          in the documentation to know how to use it), which is flexible and
+          easy to use.</p>
+        <p>Here are some synthetic sequence databases generated with the <strong>IBM
+            Quest Dataset Generator</strong>, converted to the SPMF format:</p>
+        <table border="1">
+          <tbody>
+            <tr>
+              <td bgcolor="#FFFFCC"><strong>Dataset name </strong></td>
+              <td bgcolor="#FFFFCC"><strong>Description</strong></td>
+              <td bgcolor="#FFFFCC"><strong>Sequence count </strong></td>
+              <td bgcolor="#FFFFCC"><strong>Item count </strong></td>
+              <td bgcolor="#FFFFCC"><strong>Average number of itemsets per
+                  sequence</strong></td>
+              <td bgcolor="#FFFFCC"><strong>Average number of distinct item per
+                  sequence</strong></td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/data.slen_10.tlen_1.seq.patlen_2.lit.patlen_8.nitems_5000_spmf.txt"
+
+                  rel="nofollow">data.slen_10.tlen_1.seq.patlen_2.lit.patlen_8.nitems_5000_spmf.txt</a></td>
+              <td>Synthetic data </td>
+              <td>50,351</td>
+              <td>41,911</td>
+              <td>1.63</td>
+              <td>13.23</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/data.slen_10.tlen_1.seq.patlen_3.lit.patlen_8.nitems_5000_spmf.txt"
+
+                  rel="nofollow">data.slen_10.tlen_1.seq.patlen_3.lit.patlen_8.nitems_5000_spmf.txt</a></td>
+              <td>Synthetic data </td>
+              <td>47,785</td>
+              <td>53,137</td>
+              <td>1.93</td>
+              <td>15.63</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/data.slen_10.tlen_1.seq.patlen_4.lit.patlen_8.nitems_5000_spmf.txt"
+
+                  rel="nofollow">data.slen_10.tlen_1.seq.patlen_4.lit.patlen_8.nitems_5000_spmf.txt</a></td>
+              <td>Synthetic data </td>
+              <td>47,556</td>
+              <td>62,296</td>
+              <td>2.24</td>
+              <td>17.96</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/data.slen_10.tlen_1.seq.patlen_5.lit.patlen_8.nitems_5000_spmf.txt"
+
+                  rel="nofollow">data.slen_10.tlen_1.seq.patlen_5.lit.patlen_8.nitems_5000_spmf.txt</a></td>
+              <td>Synthetic data </td>
+              <td>47,988</td>
+              <td>69,686</td>
+              <td>2.56</td>
+              <td>20.49</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/data.slen_10.tlen_1.seq.patlen_6.lit.patlen_8.nitems_5000_spmf.txt"
+
+                  rel="nofollow">data.slen_10.tlen_1.seq.patlen_6.lit.patlen_8.nitems_5000_spmf.txt</a></td>
+              <td>Synthetic data </td>
+              <td>48,467</td>
+              <td>75,476</td>
+              <td>2.84</td>
+              <td>22.7</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/data.slen_8.tlen_1.seq.patlen_2.lit.patlen_8.nitems_5000_spmf.txt"
+
+                  rel="nofollow">data.slen_8.tlen_1.seq.patlen_2.lit.patlen_8.nitems_5000_spmf.txt</a></td>
+              <td>Synthetic data </td>
+              <td>45,535</td>
+              <td>41,270</td>
+              <td>1.52</td>
+              <td>12.30</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/data.slen_8.tlen_1.seq.patlen_3.lit.patlen_8.nitems_5000_spmf.txt"
+
+                  rel="nofollow">data.slen_8.tlen_1.seq.patlen_3.lit.patlen_8.nitems_5000_spmf.txt</a></td>
+              <td>Synthetic data </td>
+              <td>45,452</td>
+              <td>52,551</td>
+              <td>1.80</td>
+              <td>14.54</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/data.slen_8.tlen_1.seq.patlen_4.lit.patlen_8.nitems_5000_spmf.txt"
+
+                  rel="nofollow">data.slen_8.tlen_1.seq.patlen_4.lit.patlen_8.nitems_5000_spmf.txt</a></td>
+              <td>Synthetic data </td>
+              <td>46,131</td>
+              <td>61,137</td>
+              <td>2.09</td>
+              <td>16.71</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/data.slen_8.tlen_1.seq.patlen_5.lit.patlen_8.nitems_5000_spmf.txt"
+
+                  rel="nofollow">data.slen_8.tlen_1.seq.patlen_5.lit.patlen_8.nitems_5000_spmf.txt</a></td>
+              <td>Synthetic data </td>
+              <td>47,133</td>
+              <td>68,240</td>
+              <td>2.36</td>
+              <td>18.82</td>
+            </tr>
+          </tbody>
+        </table>
+        
+          <p>It is also possible to generate sequence databases by using the <a
+
+              href="https://www.philippe-fournier-viger.com/spmf/datasets/IBM_Quest_data_generator.zip">IBM
+              Generator</a>. Files generated by the IBM Generator can be
+            converted in SPMF format by using the conversion tool provided in
+            SPMF (see this <a href="https://www.philippe-fournier-viger.com/spmf/index.php?link=documentation.php#convseq">example</a>
+            in the documentation for how to convert files.</p>
+          <p>Another alternative for generating synthetic sequences databases is
+            to use a<a href="SequentialPatternGenerator.m"> Matlab proram </a>provided
+            by <strong>Ashwin Balani.</strong></p>
+          <p><strong><a name="timeintervals" id="timeintervals"></a>Datasets that contain time-interval sequences</strong></p>
+          <p>There are also several sequence datasets where <strong>events</strong> are described using <strong>time intervals</strong> (each event has a start time and an end time, that is a duration). Those datasets should be used with specialized algorithms for<strong> time-interval related pattern mining </strong>such as <strong>FastTIRP</strong> and <strong>VertTIRP</strong>. The datasets were obtained from the public repository of github user <em>@omerh18 </em>and converted in the SPMF format to make them easy to use with SPMF. </p>
+          <table border="1">
+            <tbody>
+              <tr>
+                <td bgcolor="#FFFFCC"><strong>Dataset name </strong></td>
+                <td bgcolor="#FFFFCC"><strong>Sequence count </strong></td>
+                <td bgcolor="#FFFFCC"><strong>Event type  count </strong></td>
+                <td bgcolor="#FFFFCC"><strong>Avg. number of time intervals per sequence </strong></td>
+              </tr>
+              <tr>
+                <td><a href="datasets/timeintervals/asl_spmf.csv">asl_spmf.csv</a></td>
+                <td>65</td>
+                <td>146</td>
+                <td>31.32</td>
+              </tr>
+              <tr>
+                <td><a href="datasets/timeintervals/aslgt_spmf.csv">aslgt_spmf.csv</a></td>
+                <td>1751</td>
+                <td>47</td>
+                <td>41.26</td>
+              </tr>
+              <tr>
+                <td><a href="datasets/timeintervals/auslan2_spmf.csv">auslan2_spmf.csv</a></td>
+                <td>200</td>
+                <td>12</td>
+                <td>4.49</td>
+              </tr>
+              <tr>
+                <td height="23"><a href="datasets/timeintervals/blocks_spmf.csv">blocks_spmf.csv</a></td>
+                <td>210</td>
+                <td>8</td>
+                <td>5.74</td>
+              </tr>
+
+              <tr>
+                <td><a href="datasets/timeintervals/context_spmf.csv">context_spmf.csv</a></td>
+                <td>240</td>
+                <td>54</td>
+                <td>53.81</td>
+              </tr>
+              <tr>
+                <td><a href="datasets/timeintervals/ct1_spmf.csv">ct1_spmf.csv</a></td>
+                <td>1060</td>
+                <td>49</td>
+                <td>42.68</td>
+              </tr>
+              <tr>
+                <td><a href="datasets/timeintervals/ct2_spmf.csv">ct2_spmf.csv</a></td>
+                <td>576</td>
+                <td>64</td>
+                <td>307.14</td>
+              </tr>
+              <tr>
+                <td><a href="datasets/timeintervals/diabetes_spmf.csv">diabetes_spmf.csv</a></td>
+                <td>2038</td>
+                <td>35</td>
+                <td>39.52</td>
+              </tr>
+              <tr>
+                <td><a href="datasets/timeintervals/hepatitis_spmf.csv">hepatitis_spmf.csv</a></td>
+                <td>498</td>
+                <td>63</td>
+                <td>96.44</td>
+              </tr>
+              <tr>
+                <td><a href="datasets/timeintervals/pioneer_spmf.csv">pioneer_spmf.csv</a></td>
+                <td>160</td>
+                <td>92</td>
+                <td>30.51</td>
+              </tr>
+              <tr>
+                <td><a href="datasets/timeintervals/skating_spmf.csv">skating_spmf.csv</a></td>
+                <td>530</td>
+                <td>41</td>
+                <td>35.68</td>
+              </tr>
+              <tr>
+                <td><a href="datasets/timeintervals/smarthome_spmf.csv">smarthome_spmf.csv</a></td>
+                <td>89</td>
+                <td>92</td>
+                <td>260.81</td>
+              </tr>
+              <tr>
+                <td><a href="datasets/timeintervals/st1_spmf.csv">st1_spmf.csv</a></td>
+                <td>2746</td>
+                <td>1299</td>
+                <td>59.53</td>
+              </tr>
+              <tr>
+                <td><a href="datasets/timeintervals/st2_spmf.csv">st2_spmf.csv</a></td>
+                <td>1805</td>
+                <td>1299</td>
+                <td>530.44</td>
+              </tr>
+            </tbody>
+          </table>
+          <h3><strong><span class="centered"><a name="d2"></a>Datasets for </span>Frequent Itemset
+        mining / Association Rule Mining</strong> / Periodic pattern mining /
+      Frequent episode mining </h3>
+          <h4><strong><a name="v1"></a>Datasets</strong> <strong>in SPMF format</strong></h4>
+          <p>These datasets can be directly used in SPMF:</p>
+        <table border="1">
+          <tbody>
+            <tr>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Dataset name </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Description</strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Transaction
+                  count </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Item count (I)
+                </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Average item
+                  count per transaction (A) </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Density (%) <br>
+                  (A / I ) * 100 <br>
+                </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Has item
+                  names? </strong></td>
+            </tr>
+            <tr>
+              <td><em><a href="https://www.philippe-fournier-viger.com/spmf/datasets/retail.txt">retail</a></em></td>
+              <td><strong>customer transactions</strong> from an anonymous
+                Belgian retail store.<br>
+                (source FIMI: http://fimi.ua.ac.be/data/)</td>
+              <td>88,162</td>
+              <td>16470</td>
+              <td>10,30</td>
+              <td align="right" width="74">0.06 % </td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><em><a href="https://www.philippe-fournier-viger.com/spmf/datasets/mushrooms.txt">mushrooms</a></em></td>
+              <td>
+                <p>prepared based on the UCI mushrooms dataset<br>
+                  (source: FIMI)</p>              </td>
+              <td>8,416</td>
+              <td>119</td>
+              <td>23</td>
+              <td align="right">19.33 %</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><em><a href="https://www.philippe-fournier-viger.com/spmf/datasets/pumsb.txt">pumsb</a></em></td>
+              <td>
+                <p>census data for population and housing<br>
+                  (source: FIMI)<br>
+                </p>              </td>
+              <td>49,046</td>
+              <td> 2113</td>
+              <td>74</td>
+              <td align="right">3.50 %</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><em><a href="https://www.philippe-fournier-viger.com/spmf/datasets/chess.txt">chess</a></em></td>
+              <td>prepared based on the UCI chess dataset<br>
+                (source: FIMI)</td>
+              <td>3,196</td>
+              <td>75</td>
+              <td>37</td>
+              <td align="right">49.33 %</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><em><a href="https://www.philippe-fournier-viger.com/spmf/datasets/connect.txt">connect</a></em></td>
+              <td>prepared based on the UCI connect-4 dataset (source: FIMI)</td>
+              <td>67,557 </td>
+              <td>129</td>
+              <td>43</td>
+              <td align="right">33.33 %</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/accidents.txt">accidents</a></td>
+              <td>anonymized traffic accident data (source: FIMI)</td>
+              <td>340,183</td>
+              <td>468</td>
+              <td>33.8</td>
+              <td align="right">7.22 %</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/BMS1_itemset_mining.txt"><em>BMS_WebView_1</em></a></td>
+              <td>click-stream data from a webstore used in KDD-Cup 2000 (<strong>note:</strong>
+                this version of the dataset has been prepared for <em>itemset
+                  mining / association rule mining</em>)<br>
+                (source: FIMI)</td>
+              <td>59,602</td>
+              <td>497</td>
+              <td>2.51</td>
+              <td align="right">0.51 %</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><em><a href="https://www.philippe-fournier-viger.com/spmf/datasets/BMS2_itemset_mining.txt">BMS_WebView_2</a></em><a
+
+                  href="https://www.philippe-fournier-viger.com/spmf/datasets/BMS2_itemset_mining.txt"></a></td>
+              <td>click-stream data from a webstore used in KDD-Cup 2000 (<strong>note:</strong>
+                this version of the dataset has been prepared for <em>itemset
+                  mining / association rule mining</em>)<br>
+                (source: FIMI)</td>
+              <td>77,512</td>
+              <td>3340</td>
+              <td>4.62</td>
+              <td align="right">0.14 %</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="datasets/kosarak.dat">Kosarak</a></td>
+              <td>transactions from click-stream data from an hungarian news
+                portal.<br>
+                (source: FIMI)</td>
+              <td>990,002</td>
+              <td>41270</td>
+              <td>8.1</td>
+              <td align="right">0.02 %</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><em><a href="https://www.philippe-fournier-viger.com/spmf/datasets/chainstoreFIM.txt">chainstore</a><a
+
+                    href="https://www.philippe-fournier-viger.com/spmf/datasets/retail.txt"></a></em></td>
+              <td><strong>customer transactions </strong>from a major grocecy
+                store chain in California, USA</td>
+              <td>1,112,949</td>
+              <td>46086</td>
+              <td>7.23</td>
+              <td align="right">0.02 %</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/foodmartFIM.txt">foodmart</a></td>
+              <td><strong>customer transactions</strong> from a retail store,
+                obtained and transformed from SQL-Server 2000</td>
+              <td>4,141</td>
+              <td>1559</td>
+              <td>4.42</td>
+              <td align="right">0.28 %</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td height="175"><a href="datasets/fruithut_original.txt">Fruithut</a></td>
+              <td>
+                <p>This is a dataset of customer transactions from a US retail
+                  store focusing on selling fruits.</p>
+                <p>The dataset contains 181,970 transactions, 1,265 different
+                  items. The largest transactions contains 36 items, while on
+                  average a customer purchase 3.58 items per transaction.</p>
+                <p>You can also download the <strong><a href="datasets/Fruithut_taxonomy_data.txt">taxonomy</a><a
+
+                      href="Fruithut_taxonomy_data.txt"></a></strong> of items
+                  for this dataset, which can be useful for cross-level or
+                  multi-level itemset mining. The taxonomy is provided in a
+                  separated file where each line indicates than an item is a
+                  specialization of another item (a product belongs to a product
+                  category). An item can be a product or a category. The
+                  taxonomy has 4 levels and 43 categories. See the paper of<strong>
+                    Ying Wang et al.</strong> above for more details. </p>
+                <p>The data was obtained from Kaggle and then<strong>
+                    transformed to the SPMF format by Ying Wang et al. </strong>
+                  for her paper about mining<a href="https://www.philippe-fournier-viger.com/2020-%20IEA%20AIE%20-%20CROSS%20LEVEL%20HIGH%20UTILITY%20ITEMSETS.pdf">
+                    cross-level high utility itemsets (2020).</a></p>              </td>
+              <td>181,970</td>
+              <td>1265</td>
+              <td>3.58</td>
+              <td align="right">0.28 %</td>
+              <td>
+                <p><strong>Yes</strong>, item names are included in the file </p>
+                <p>&nbsp;</p>              </td>
+            </tr>
+            <tr>
+              <td><a href="liquor_11frequent.txt">Liquor_11</a></td>
+              <td>
+                <p>This is a dataset of 9,284 customer transactions from a <strong>US
+                    liquor stores</strong> in the state of IOWA. </p>
+                <p>You can also download the <strong><a href="datasets/liquor_taxonomy.txt">taxonomy</a></strong>
+                  of items for this dataset, which can be useful for cross-level
+                  or multi-level itemset mining. The taxonomy is provided in a
+                  separated file where each line indicates than an item is a
+                  specialization of another item (a product belongs to a product
+                  category). An item can be a product or a category. The
+                  taxonomy has 7 levels and 77 categories. See the paper of<strong>
+                    Ying Wang et al.</strong> above for more details. </p>
+                <p>The data was obtained from the internet and then<strong>
+                    transformed to the SPMF format by Ying Wang et al. </strong>
+                  for her paper about mining<a href="https://www.philippe-fournier-viger.com/2020-%20IEA%20AIE%20-%20CROSS%20LEVEL%20HIGH%20UTILITY%20ITEMSETS.pdf">
+                    cross-level high utility itemsets (2020).</a> In particular
+                  the taxonomy was creating by doing some NLP from the item
+                  names.</p>
+                <p>The dataset contains only transactions with no more than 11
+                  items. If you want all transactions with no more than 15
+                  items, you can download <a href="datasets/liquor_15.txt">liquor_15.txt</a>,
+                  of if you want no more than 5 items, you can download <a href="datasets/liquor_5.txt">liquor_5.txt</a>.                </p>              </td>
+              <td>9,284</td>
+              <td>2626</td>
+              <td>2.7</td>
+              <td align="right">0.10 %</td>
+              <td>Yes (temporary not available </td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/kddcup99.txt">kddcup99</a></td>
+              <td> This dataset is transformed from the KDD CUP 1999 dataset,
+                found at
+                https://archive.ics.uci.edu/ml/datasets/KDD+Cup+1999+Data)</td>
+              <td>1,000,000</td>
+              <td>135</td>
+              <td>16</td>
+              <td align="right">11.85 %</td>
+              <td>
+                <p><strong>Yes</strong>, <a href="datasets/kddcup99Attributes.xslx">kddcup99Attributes.xlsx</a></p>              </td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/OnlineRetailZZ.txt">OnlineRetail</a></td>
+              <td>
+                <p>This dataset is transformed from the Online Retail dataset,
+                  found at https://archive.ics.uci.edu/ml/datasets/
+                  Online+Retail. <br>
+                  Converted &nbsp;by  Zhongjie Zhang.<strong><br>
+                    Note:</strong> these is another dataset also called
+                  OnlineRetail in some papers, which is in fact the <strong>ECommerce
+                    </strong>dataset.</p>              </td>
+              <td>541,909</td>
+              <td>2603</td>
+              <td>4.37</td>
+              <td align="right">0.17 %</td>
+              <td>
+                <p><strong>Yes</strong>, <a href="datasets/OnlineRetailZZAtrributes.xlsx">OnlineRetailAttributes.xlsx</a>.</p>              </td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/PAMAP.txt">PAMP</a></td>
+              <td>
+                <p>This dataset is transformed from the PAMAP2 dataset, obtained
+                  from
+                  https://archive.ics.uci.edu/ml/datasets/PAMAP2+Physical+Activity+Monitoring<br>
+                  Note: In the original data, a few lines contained NaN values.
+                  These values have been removed.<br>
+                  Converted &nbsp;by  Zhongjie Zhang.</p>              </td>
+              <td>1,000,000</td>
+              <td>141</td>
+              <td>23.93</td>
+              <td align="right">16.97 %</td>
+              <td><strong>Yes</strong>,<br>
+                <a href="datasets/PAMAPAttributes.xslx">PAMPAttributes.xlsx</a></td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/Skin.txt">Skin</a></td>
+              <td>This dataset is transformed from the dataset Skin
+                Segmentation, obtained from
+                https://archive.ics.uci.edu/ml/datasets/Skin+Segmentation<br>
+                Converted &nbsp;by  Zhongjie Zhang.</td>
+              <td>245,057</td>
+              <td>11</td>
+              <td>4.0</td>
+              <td align="right">36.36 %</td>
+              <td><strong>Yes</strong>, <br>
+                <a href="datasets/SkinAttributes.xslx">SkinAttributes.xlsx</a></td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/USCensus.txt">USCensus</a></td>
+              <td>This dataset is transformed from the US Census 1990 dataset,
+                obtained from
+                https://archive.ics.uci.edu/ml/datasets/US+Census+Data+(1990)<br>
+                Converted &nbsp;by  Zhongjie Zhang.</td>
+              <td> 1,000,000</td>
+              <td>396</td>
+              <td>68.0</td>
+              <td align="right">17.17 %</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/RecordLink.txt">RecordLink</a></td>
+              <td>This dataset is transformed from
+                http://archive.ics.uci.edu/ml/datasets/Record+Linkage+Comparison+Patterns.<br>
+                Converted &nbsp;by  Zhongjie Zhang.</td>
+              <td>574,913</td>
+              <td>29</td>
+              <td>10</td>
+              <td align="right">34.48 %</td>
+              <td>
+                <p><strong>Yes</strong><br>
+                  <a href="datasets/RecordLinkAttribute.xslx">RecordLinkAttribute.xslx</a></p>              </td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/zhangzhongjie/PowerC.zip">PowerC</a></td>
+              <td>The dataset is about household electric power consumption. It
+                was prepared using the original dataset from
+                https://archive.ics.uci.edu/ml/datasets/Individual+household+electric+power+consumption.
+                The dataset contains instances, which were transformed to
+                transactions, where value fields of the 3rd attribute to the 9th
+                attribute are divided in 10 equal parts and every part is
+                represented by a number. As a result, the dataset has 140 items.<br>
+                Converted &nbsp;by  Zhongjie Zhang.</td>
+              <td>1,040,000</td>
+              <td>140</td>
+              <td>7</td>
+              <td align="right">5.00 %</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/zhangzhongjie/Susy.zip">Susy</a></td>
+              <td>
+                <p>This dataset is related to physics. It is related to
+                  particles detected using a particle accelerator. The dataset
+                  contains instances prepared using the original datasetbtained
+                  from http://archive.ics.uci.edu/ml/datasets/SUSY.
+                  The instances were transformed to transactions, such that the
+                  value field of every attribute is divided in 10 equal parts
+                  and every part is represented by a number. As a result, the
+                  dataset has 190 items.<br>
+                  Converted &nbsp;by  Zhongjie Zhang.<br>
+                </p>              </td>
+              <td>5,000,000</td>
+              <td>190</td>
+              <td>19</td>
+              <td align="right">10.00 %</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td height="99"><a href="datasets/Chicago_Crimes_2001_to_2017_FIM.txt">Chicago_Crimes_2001_to_2017_FIM</a></td>
+              <td>The dataset was converted from the dataset 'Crimes in Chicago' (https://www.kaggle.com/datasets/currie32/crimes-in-chicago) by <strong>Zhongjie Zhang</strong>. The dataset records the crimes that have occurred in Chicago from 2001 to 2017.<br>
+                  <br>
+              Every transaction corresponds to a &lt;month, area&gt;. A transaction describes the crimes that have occurred in a specific area during a specific month. Items represents the types of crimes, while the utility of an item in a transaction indicates the number of occurrences of that crime. For a description of the types of crimes, see the <a href="datasets/Chicago_Crimes_2001_to_2017_item_names.txt">file describing the item names of that dataset. </a></td>
+              <td>2,662,309</td>
+              <td>35</td>
+              <td>1.795</td>
+              <td>5.13%</td>
+              <td><a href="datasets/Chicago_Crimes_2001_to_2017_item_names.txt">Yes, the description of items is here </a></td>
+            </tr>
+            <tr>
+              <td height="99"><a href="datasets/yoochoose-buys_FIM.dat">Yoo-choose-buy-FIM</a></td>
+              <td><p>This dataset was obtained from the RecSys2015 challenge and converted to the SPMF format so that it can be used with SPMF. The dataset contains transactions from customers who have purchased items in an online store. <br>
+                <br>
+              Each transaction correspond to a customer  and indicates the products that have been purchased. </p>
+                <p>Note on the conversion: items having a quantity of 0 or a price of 0 were eliminated. <br>
+                  <br>
+              </p>              </td>
+              <td>234,300</td>
+              <td>16,004</td>
+              <td>2.165</td>
+              <td>0.01%</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td height="99"><a href="https://philippe-fournier-viger.com/spmf/datasets/instacart/instacart_priorFIM.txt">instacart_priorFIM</a> <img src="new.gif" alt="new"><br>
+              <br>
+              <a href="https://philippe-fournier-viger.com/spmf/datasets/instacart/instacart_trainFIM.txt">instacart_trainFIM <img src="new.gif" alt="new"></a></td>
+              <td>Those are <strong>two customer transaction datasets </strong>obtained by transforming the data from the instacart competition that was held on Kaggle in 2017. They can directly be used for frequent itemset mining and association rule mining. <br>
+                  <br>
+                To help interpret the results, the product names are provided in another file: <a href="https://philippe-fournier-viger.com/spmf/datasets/instacart/instacart_product_names.txt">here</a><br>
+                <br>
+              And besides that, in addition to these two files, there is also a file <a href="https://philippe-fournier-viger.com/spmf/datasets/instacart/taxonomy.txt">taxonomy.txt</a> that provides a taxonomy of all items for this dataset. A taxonomy is some categories and subcategories for the items. This taxonomy file contains several lines, where each line has the form X,Y indicating that an item or a category X is contained in a category Y. The category names for this dataset are provided in another file: <a href="https://philippe-fournier-viger.com/spmf/datasets/instacart/instacart_category_names.txt">instacart_category_names.txt</a><br></td>
+              <td>3,214,874<br>
+                  <br>
+                131,209<br>
+              <br></td>
+              <td>49,677<br>
+              <br>
+              39,123</td>
+              <td><p>10.08</p>
+              <p>10.55</p>              </td>
+              <td>0.002 %<br>
+              <br>
+              0.002 % </td>
+              <td><a href="https://philippe-fournier-viger.com/spmf/datasets/instacart/instacart_product_names.txt">Yes</a> </td>
+            </tr>
+            <tr>
+              <td height="99"><a href="https://philippe-fournier-viger.com/spmf/datasets/TH/TH1FIM.7z">TH1 (compressed in 7z format) </a><a href="https://philippe-fournier-viger.com/spmf/datasets/instacart/instacart_trainFIM.txt"><img src="new.gif" alt="new"></a></td>
+              <td>A large dataset of customer transactions from grocery store(s). It was obtained from the public dataset TH1 on kaggle from @alexkever and transformed to the SPMF format, with some modifications such as to sort items in transactions, and remove duplicate items. The names of products are not included.</td>
+              <td>2,654,710</td>
+              <td>828</td>
+              <td>10.99</td>
+              <td>1.32%</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td height="99"><a href="https://philippe-fournier-viger.com/spmf/datasets/TH/TH2FIM.7z">TH2 (compressed in 7z format)</a><a href="https://philippe-fournier-viger.com/spmf/datasets/instacart/instacart_trainFIM.txt"><img src="new.gif" alt="new"></a></td>
+              <td>A very large dataset of customer transactions from grocery store(s). It was obtained from the public dataset TH2 on kaggle from @alexkever and transformed to the SPMF format, with some modifications such as to sort items in transactions, and remove duplicate items. The names of products are not included. </td>
+              <td><strong>26,496,645</strong></td>
+              <td>836</td>
+              <td>10.96</td>
+              <td>1.31%</td>
+              <td>No</td>
+            </tr>
+          </tbody>
+        </table>
+      
+      <h4><strong><a name="v2"></a>Synthetic datasets</strong></h4>
+        <p>Here are a few synthetic datasets in SPMF format:</p>
+        <table border="1">
+          <tbody>
+            <tr>
+              <td bgcolor="#FFFFCC"><strong>Dataset name </strong></td>
+              <td bgcolor="#FFFFCC"><strong>Description</strong></td>
+              <td bgcolor="#FFFFCC"><strong>Transaction count </strong></td>
+              <td bgcolor="#FFFFCC"><strong>Item count (I) </strong></td>
+              <td bgcolor="#FFFFCC"><strong>Average item count per transaction
+                  (A) </strong></td>
+              <td bgcolor="#FFFFCC"><strong>Density <br>
+                  (A / I ) * 100 </strong></td>
+            </tr>
+            <tr>
+              <td><em><a href="https://www.philippe-fournier-viger.com/spmf/datasets/c20d10k.txt">c20d10k</a><a
+
+                    href="https://www.philippe-fournier-viger.com/spmf/datasets/retail.txt"></a></em></td>
+              <td>synthetic dataset </td>
+              <td>10,000</td>
+              <td>192</td>
+              <td>20</td>
+              <td align="right" width="74">
+                <div align="left">10.42 % </div>
+              </td>
+            </tr>
+            <tr>
+              <td><em><a href="https://www.philippe-fournier-viger.com/spmf/datasets/c73d10k.txt">c73d10k</a></em></td>
+              <td>synthetic dataset </td>
+              <td>10,000</td>
+              <td>1592</td>
+              <td>73</td>
+              <td align="right">
+                <div align="left">4.59 % </div>
+              </td>
+            </tr>
+            <tr>
+              <td><em><a href="https://www.philippe-fournier-viger.com/spmf/datasets/t25i10d10k.txt">t25i10d10k</a></em></td>
+              <td>synthetic dataset </td>
+              <td>9,976</td>
+              <td>929</td>
+              <td>24.77</td>
+              <td align="right">
+                <div align="left">2.67 % </div>
+              </td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/t20i6d100k.txt">t20i6d100k</a></td>
+              <td>synthetic dataset </td>
+              <td>99,922</td>
+              <td>893</td>
+              <td>19.90</td>
+              <td align="right">
+                <div align="left">2.23 % </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p>It is possible to generate synthetic transaction databases by using
+          the<strong> random transaction database generator</strong> provided in
+          SPMF (see <a href="https://www.philippe-fournier-viger.com/spmf/index.php?link=documentation.php#gentrans">this
+            example </a>in the documentation to know how to do it), which is
+          flexible and easy to use.</p>
+        <p>Moreover, you can download the following synthetic datasets often
+          used in the data mining litterature, generated by the <a href="https://www.philippe-fournier-viger.com/spmf/datasets/IBM_Quest_data_generator.zip">IBM
+            Generator</a>. The names are given according to this convention: D:
+          number of sequences in the dataset, C: average number of itemsets per
+          sequence, T: average number of items per itemset, I: average size of
+          itemsets in potentially frequent sequences.</p>
+        <p>Another alternative for generating synthetic transactions databases
+          is to use a<a href="PatternGenerator.m"> Matlab program</a> provided
+          by <strong>Ashwin Balani.</strong></p>
+      
+      <h4><strong><a name="v3"></a>Real-life datasets</strong> <strong>in SPMF format, having
+          timestamps</strong></h4>
+        <p>The datasets containing timestamps can be directly used in SPMF with
+          algorithms that accept timestamps:</p>
+        
+          <table border="1">
+            <tbody>
+              <tr>
+                <td bgcolor="#FFFFCC"><strong>Dataset name </strong></td>
+                <td bgcolor="#FFFFCC"><strong>Description</strong></td>
+                <td bgcolor="#FFFFCC"><strong>Transaction count </strong></td>
+                <td bgcolor="#FFFFCC"><strong>Item count (I) </strong></td>
+                <td bgcolor="#FFFFCC"><strong>Average item count per transaction
+                    (A) </strong></td>
+                <td bgcolor="#FFFFCC"><strong>Density <br>
+                    (A / I ) * 100</strong></td>
+                <td bgcolor="#FFFFCC"><strong>Has item names? </strong></td>
+              </tr>
+              <tr>
+                <td><a href="datasets/ecommerce_time_without_utility.txt">ECommerce_time_without_utility</a><img
+
+                    src="new.gif" alt="new"></td>
+                <td><strong>customer transactions </strong>occurring between
+                  01/12/2010 and 09/12/2011 of a UK-based and registered
+                  non-store online retail (<strong>this is the version with
+                    timestamps </strong>). If you want to know the meaning of
+                  the items in this dataset, the list of item names is
+                  available. <br>
+                  The data was prepared by <strong>Yimin Zhang</strong> using
+                  public data.</td>
+                <td>
+                  <p>14,975</p>
+                </td>
+                <td>3,468</td>
+                <td>11.71</td>
+                <td>0.34 %</td>
+                <td><strong>Yes<br>
+                    <br>
+                  </strong><a href="datasets/online_retail_item_names.txt">list
+                    of item names</a></td>
+              </tr>
+            </tbody>
+          </table>
+        
+      
+      <h4><strong><a name="v4"></a>Real-life datasets in ARFF format</strong></h4>
+          <p>The GUI and command line interface of SPMF &gt; 093d and higher can
+          read ARFF (Attribute Relational File Format) files . You can download
+          a<a href="https://www.philippe-fournier-viger.com/spmf/uci_datasets.zip">
+            collection of 36 real-life datasets in ARFF format from the UCI
+            machine learning repository.</a> These files can be used with all
+          association rule mining and itemset mining algorithms that take a
+          transaction database as input. Note that examples <strong>MainTest.</strong>..in the
+          source code have not been adapted to read ARFF files yet (for now,
+          ARFF files are only accepted by the GUI and command line interface).
+          Most features of the ARFF format are supported except that (1) the
+          character = is forbidden and (2) escape characters are not
+          considered. Note that when the ARFF format is used, the performance of
+          the data mining algorithms will be slightly less than if the native
+          SPMF file format is used because a conversion of the input file will
+          be automatically performed before launching the algorithm and the
+          result will have to be converted. This cost however should be small.
+          The specification of the ARFF format can be found <a rel="nofollow" href="http://weka.wikispaces.com/ARFF+%28stable+version%29">here</a>.</p>
+      
+    
+    <h3><strong><span class="centered"><a name="d3"></a>Datasets for </span>High-Utility Pattern
+        Mining</strong></h3>
+        <p>The following <strong>transaction databases </strong> that can be
+        used with <a href="https://www.philippe-fournier-viger.com/Survey_high_utility_itemset2019_draft.pdf">high-utility
+          itemset mining</a> algorithms such as EFIM, FHM, HUI-Miner, IHUP,
+        UPGrowth and Two-Phase. For information about the format of these files,
+        see the examples in the documentation of EFIM, FHM, HUI-Miner or
+        Two-Phase. </p>
+      <h4><strong><a name="c1"></a>Real-life transaction datasets</strong> <strong>in SPMF format
+          with real utility values </strong></h4>
+        <p>Those are three real-life <strong>customer transaction datasets</strong>
+          with <strong>real utility values</strong>: </p>
+        <table border="1">
+          <tbody>
+            <tr>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Dataset name </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Description</strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Transaction
+                  count </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Item count (I)
+                </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Average item
+                  count per transaction (A) </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Density (%) <br>
+                  (A / I ) * 100 </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Has real
+                  utility values?</strong> </td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Has item
+                  names? </strong></td>
+            </tr>
+            <tr>
+              <td><em><a href="https://www.philippe-fournier-viger.com/spmf/datasets/foodmart.txt">foodmart_utility</a><a
+
+                    href="https://www.philippe-fournier-viger.com/spmf/datasets/retail.txt"></a></em></td>
+              <td>dataset of customer transactions from a retail store, obtained
+                and transformed from SQL-Server 2000</td>
+              <td>4,141</td>
+              <td>1559</td>
+              <td>4.42</td>
+              <td>0.28 % </td>
+              <td><strong>Yes</strong></td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><em><a href="https://www.philippe-fournier-viger.com/spmf/datasets/chainstore.txt">chainstore_utility</a><a
+
+                    href="https://www.philippe-fournier-viger.com/spmf/datasets/mushrooms.txt"></a></em></td>
+              <td>
+                <p>dataset of customer transactions from a major grocery store
+                  chain in California, USA, containing 1,112,949 transactions
+                  and 46,086 items, obtained and transformed from NU-Mine Bench.                </p>
+                <p>The original data is available <a href="chainstore_product_price_and_quantity.zip">here</a>
+                  (not in SPMF format)</p>              </td>
+              <td>1,112,949</td>
+              <td>46086</td>
+              <td>7.23</td>
+              <td>0.02 %</td>
+              <td><strong>Yes</strong></td>
+              <td>No </td>
+            </tr>
+            <tr>
+              <td height="99"><em><a href="datasets/ecommerce_utility_no_timestamps.txt">ECommerce_retail_utility_no_timestamps</a><a
+
+                    href="https://www.philippe-fournier-viger.com/spmf/datasets/pumsb.txt"></a></em></td>
+              <td>
+                <p>transactional data set which contains all the transactions
+                  occurring between 01/12/2010 and 09/12/2011 of a UK-based and
+                  registered non-store online retail (<strong>this is the
+                    version with real utility values but without timestamps</strong>).</p>
+                <p> The data was prepared by <strong>Yimin Zhang</strong> using
+                  public data for his paper about <strong>peak high utility
+                    itemset mining.</strong><br>
+                </p>              </td>
+              <td>
+                <p>14,975</p>              </td>
+              <td>3468</td>
+              <td>11.71</td>
+              <td>0.34 % </td>
+              <td><strong>Yes</strong></td>
+              <td>
+                <p><strong>Yes </strong></p>
+                <p><a href="datasets/ecommerce_item_names.txt">list of item
+                    names</a> <strong><img src="new.gif" alt="new"></strong></p>              </td>
+            </tr>
+            <tr>
+              <td height="99"><a href="datasets/fruithut_utility.txt">Fruithut_utility</a></td>
+              <td>
+                <p>This is a dataset of customer transactions from a US retail
+                  store focusing on selling fruits.</p>
+                <p>The dataset contains 181,970 transactions, 1,265 different
+                  items. The largest transactions contains 36 items, while on
+                  average a customer purchase 3.58 items per transaction.</p>
+                <p>You can also download the <strong><a href="datasets/Fruithut_taxonomy_data.txt">taxonomy</a></strong>
+                  of items for this dataset, which can be useful for cross-level
+                  or multi-level itemset mining. The taxonomy is provided in a
+                  separated file where each line indicates than an item is a
+                  specialization of another item (a product belongs to a product
+                  category). An item can be a product or a category. The
+                  taxonomy has 4 levels and 43 categories. See the paper of<strong>
+                    Ying Wang et al.</strong> above for more details. </p>
+                <p>The data was obtained from Kaggle and then<strong>
+                    transformed to the SPMF format by Ying Wang et al. </strong>
+                  for her paper about mining<a href="https://www.philippe-fournier-viger.com/2020-%20IEA%20AIE%20-%20CROSS%20LEVEL%20HIGH%20UTILITY%20ITEMSETS.pdf">
+                    cross-level high utility itemsets (2020).</a></p>              </td>
+              <td>181,970</td>
+              <td>1265</td>
+              <td>3.58</td>
+              <td>0.28 % </td>
+              <td>
+                <p>&nbsp;</p>
+                <p><strong>Yes</strong></p>              </td>
+              <td><strong>Yes</strong>, item names are included in the file </td>
+            </tr>
+            <tr>
+              <td height="99"><a href="datasets/liquor_11.txt">Liquor_11</a></td>
+              <td>
+                <p>This is a dataset of 9,284 customer transactions from a <strong>US
+                    liquor stores</strong> in the state of IOWA. </p>
+                <p>You can also download the <strong><a href="datasets/liquor_taxonomy.txt">taxonomy</a></strong>
+                  of items for this dataset, which can be useful for cross-level
+                  or multi-level itemset mining. The taxonomy is provided in a
+                  separated file where each line indicates than an item is a
+                  specialization of another item (a product belongs to a product
+                  category). An item can be a product or a category. The
+                  taxonomy has 7 levels and 77 categories. See the paper of<strong>
+                    Ying Wang et al.</strong> above for more details. </p>
+                <p>The data was obtained from the internet and then<strong>
+                    transformed to the SPMF format by Ying Wang et al. </strong>
+                  for her paper about mining<a href="https://www.philippe-fournier-viger.com/2020-%20IEA%20AIE%20-%20CROSS%20LEVEL%20HIGH%20UTILITY%20ITEMSETS.pdf">
+                    cross-level high utility itemsets (2020).</a> In particular
+                  the taxonomy was creating by doing some NLP from the item
+                  names.</p>
+                <p>The dataset contains only transactions with no more than 11
+                  items. If you want all transactions with no more than 15
+                  items, you can download <a href="datasets/liquor_15.txt">liquor_15.txt</a>,
+                  of if you want no more than 5 items, you can download <a href="datasets/liquor_5.txt">liquor_5.txt</a>.                </p>              </td>
+              <td>9,284</td>
+              <td>2626</td>
+              <td>2.7</td>
+              <td>0.10 %</td>
+              <td>Yes</td>
+              <td>Yes (but temporary not available) </td>
+            </tr>
+            <tr>
+              <td height="99"><a href="datasets/Chicago_Crimes_2001_to_2017_utility.txt">Chicago_Crimes_2001_to_2017_utility</a></td>
+              <td>The dataset <img
+
+                    src="new.gif" alt="new">was converted from the dataset 'Crimes in Chicago' (https://www.kaggle.com/datasets/currie32/crimes-in-chicago) by <strong>Zhongjie Zhang</strong>. The dataset records the crimes that have occurred in Chicago from 2001 to 2017.<br>
+              <br>
+              Every transaction corresponds to a &lt;month, area&gt;. A transaction describes the crimes that have occurred in a specific area during a specific month. Items represents the types of crimes, while the utility of an item in a transaction indicates the number of occurrences of that crime. For a description of the types of crimes, see the <a href="datasets/Chicago_Crimes_2001_to_2017_item_names.txt">file describing the item names of that dataset. </a></td>
+              <td>2,662,309</td>
+              <td>35</td>
+              <td>1.795</td>
+              <td>5.13%</td>
+              <td>Yes</td>
+              <td><a href="datasets/Chicago_Crimes_2001_to_2017_item_names.txt">Yes, the description of items is here </a></td>
+            </tr>
+            <tr>
+              <td height="99"><a href="datasets/yoochoose-buys_Utility.dat">Yoo-choose-buy-Utility</a></td>
+              <td><p>This dataset <img
+
+                    src="new.gif" alt="new"> was obtained from the RecSys2015 challenge and converted to the SPMF format so that it can be used with SPMF. The dataset contains transactions from customers who have purchased items in an online store. <br>
+                      <br>
+                Each transaction correspond to a customer  and indicates the products that have been purchased. </p>
+                  <p>Note on the conversion: items having a quantity of 0 or a price of 0 were eliminated. <br>
+                      <br>
+                </p></td>
+              <td>234,300</td>
+              <td>16,004</td>
+              <td>2.165</td>
+              <td>0.01%</td>
+              <td>Yes</td>
+              <td>No</td>
+            </tr>
+          </tbody>
+        </table>
+      
+      <h4><strong><a name="c2"></a>Real-life transaction datasets</strong> <strong>in SPMF format
+          having synthetic (fake) utility values </strong></h4>
+        <p>These datasets are real datasets but with <strong>synthetic</strong>
+          <strong>utility values</strong>. The internal utility values have been
+          generated using a uniform distribution in [1, 10]. </p>
+        <table border="1">
+          <tbody>
+            <tr>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Dataset name </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Description</strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Transaction
+                  count </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Item count (I)
+                </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Average item
+                  count per transaction (A) </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Density (%) <br>
+                  (A / I ) * 100 </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Has real
+                  utility values</strong>?</td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Has item
+                  names? </strong></td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/retail_utility_spmf.txt">retail_utility</a></td>
+              <td><strong>customer transactions</strong> from an anonymous
+                Belgian retail store.<br>
+                (source FIMI: http://fimi.ua.ac.be/data/)</td>
+              <td>88,162</td>
+              <td>16470</td>
+              <td>10,30</td>
+              <td align="right" width="74">
+                <div align="left">0.06 % </div>
+              </td>
+              <td>No (synthetic) </td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><em><a href="https://www.philippe-fournier-viger.com/spmf/datasets/mushroom_utility_spmf.txt">mushroom_utility</a><a
+
+                    href="https://www.philippe-fournier-viger.com/spmf/datasets/mushrooms.txt"></a></em></td>
+              <td>
+                <p>prepared based on the UCI mushrooms dataset<br>
+                  (source: FIMI)</p>
+              </td>
+              <td>8,416</td>
+              <td>119</td>
+              <td>23</td>
+              <td align="right">
+                <div align="left">19.33 %</div>
+              </td>
+              <td>No (synthetic) </td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><em><a href="https://www.philippe-fournier-viger.com/spmf/datasets/pumsb_utility_spmf.txt">pumsb_utility</a>,
+                  <a href="https://www.philippe-fournier-viger.com/spmf/datasets/pumsb.txt"></a></em></td>
+              <td>
+                <p>census data for population and housing<br>
+                  (source: FIMI)<br>
+                </p>
+              </td>
+              <td>49,046</td>
+              <td> 2113</td>
+              <td>74</td>
+              <td align="right">
+                <div align="left">3.50 %</div>
+              </td>
+              <td>No (synthetic) </td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><em><a href="https://www.philippe-fournier-viger.com/spmf/datasets/chess_utility_spmf.txt">chess_utility</a>,
+                  <a href="https://www.philippe-fournier-viger.com/spmf/datasets/chess.txt"></a></em></td>
+              <td>prepared based on the UCI chess dataset<br>
+                (source: FIMI)</td>
+              <td>3,196</td>
+              <td>75</td>
+              <td>37</td>
+              <td align="right">
+                <div align="left">49.33 %</div>
+              </td>
+              <td>No (synthetic) </td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><em><a href="https://www.philippe-fournier-viger.com/spmf/datasets/connect_utility_spmf.txt">connect_utilitty</a>,<a
+
+                    href="https://www.philippe-fournier-viger.com/spmf/datasets/connect.txt"></a></em></td>
+              <td>prepared based on the UCI connect-4 dataset (source: FIMI)</td>
+              <td>67,557 </td>
+              <td>129</td>
+              <td>43</td>
+              <td align="right">
+                <div align="left">33.33 %</div>
+              </td>
+              <td>No (synthetic) </td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/accidents_utility_spmf.txt">accidents_utility</a>,
+                <a href="https://www.philippe-fournier-viger.com/spmf/datasets/accidents.txt"></a></td>
+              <td>anonymized traffic accident data (source: FIMI)</td>
+              <td>340,183</td>
+              <td>468</td>
+              <td>33.8</td>
+              <td align="right">
+                <div align="left">7.22 %</div>
+              </td>
+              <td>No (synthetic) </td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/kosarak_utility_spmf.txt">kosarak_utility</a>,</td>
+              <td>transactions from click-stream data from an hungarian news
+                portal.<br>
+                (source: FIMI)</td>
+              <td>990,002</td>
+              <td>41270</td>
+              <td>8.1</td>
+              <td>
+                <div align="left">0.02 %</div>
+              </td>
+              <td>No (synthetic) </td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/BMS_utility_spmf.txt">BMS_utilitty</a>,</td>
+              <td>click-stream data from a webstore used in KDD-Cup 2000 <br>
+                (<strong>note:</strong> this version of the dataset has been
+                prepared for <em>high utility itemset mining </em>)<br>
+                (source: FIMI)</td>
+              <td>77,512</td>
+              <td>3340</td>
+              <td>4.62</td>
+              <td>
+                <div align="left">0.14 %</div>
+              </td>
+              <td>No (synthetic) </td>
+              <td>No</td>
+            </tr>
+          </tbody>
+        </table>
+      
+      <h4><strong><a name="c3"></a>Datasets</strong> <strong>in SPMF format having utility values
+          and timestamps</strong> </h4>
+        <p> Here are a few <strong>transaction databases </strong>in SPMF
+          format for <strong>high utility itemset mining </strong>that
+          contains <strong>timestamps. <img src="new.gif" alt="new"> </strong>These
+          datasets where prepared by Yimin Zhang for the paper in Information
+          Sciences about the LHUI-Miner and PHUI-Miner algorithms <strong> (</strong><a
+
+            href="https://www.philippe-fournier-viger.com/2018_Local_and_peak_utility_patterns_FINAL.pdf">Fournier-Viger
+            et al., 2019</a><strong>)</strong>. These datasets were used for
+          discovering <strong>local high utility itemsets </strong>and <strong>peak
+            high utility itemsets</strong>, but can be used for other tasks such
+          as recent high utility pattern mining. </p>
+        <table border="1">
+          <tbody>
+            <tr>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Dataset name </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Description</strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Transaction
+                  count </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Item count (I)
+                </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Average item
+                  count per transaction (A) </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Density (%) <br>
+                  (A / I ) * 100</strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Has real
+                  utility values?</strong> </td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Has real
+                  timestamps? </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Has item
+                  names? </strong></td>
+            </tr>
+            <tr>
+              <td height="118"><a href="https://www.philippe-fournier-viger.com/spmf/datasets/ecommerce_utility_timestamps.txt">ECommerce_retail_utility_timestamps</a></td>
+              <td>
+                <p>transactional data set which contains all the transactions
+                  occurring between 01/12/2010 and 09/12/2011 of a UK-based and
+                  registered non-store online retail (<strong>this is the
+                    version with real utility values and with timestamps</strong>).</p>
+                <p> The data was prepared by <strong>Yimin Zhang</strong> using
+                  public data for his paper about peak high utility itemset
+                  mining.<br>
+                </p>
+              </td>
+              <td>
+                <p>14,975</p>
+              </td>
+              <td>3468</td>
+              <td>11.71</td>
+              <td>0.34 % </td>
+              <td><strong>Yes</strong></td>
+              <td><strong>Yes</strong></td>
+              <td>
+                <p><strong>Yes </strong></p>
+                <p><a href="datasets/ecommerce_item_names.txt">list of item
+                    names</a> <strong><img src="new.gif" alt="new"></strong></p>
+              </td>
+            </tr>
+            <tr>
+              <td height="232"><a href="datasets/fruithut_utility_timestamps.txt">Fruithut_utility_timestamps</a></td>
+              <td>
+                <p>This is a dataset of customer transactions from a US retail
+                  store focusing on selling fruits.</p>
+                <p>The dataset contains 181,970 transactions, 1,265 different
+                  items. The largest transactions contains 36 items, while on
+                  average a customer purchase 3.58 items per transaction.</p>
+                <p>You can also download the <strong><a href="datasets/Fruithut_taxonomy_data.txt">taxonomy</a></strong>
+                  of items for this dataset, which can be useful for cross-level
+                  or multi-level itemset mining. The taxonomy is provided in a
+                  separated file where each line indicates than an item is a
+                  specialization of another item (a product belongs to a product
+                  category). An item can be a product or a category. The
+                  taxonomy has 4 levels and 43 categories. See the paper of<strong>
+                    Ying Wang et al.</strong> above for more details. </p>
+                <p>The data was obtained from Kaggle and then<strong>
+                    transformed to the SPMF format by Ying Wang et al. </strong>
+                  for her paper about mining<a href="https://www.philippe-fournier-viger.com/2020-%20IEA%20AIE%20-%20CROSS%20LEVEL%20HIGH%20UTILITY%20ITEMSETS.pdf">
+                    cross-level high utility itemsets (2020).</a></p>
+              </td>
+              <td>181,970</td>
+              <td>1265</td>
+              <td>3.58</td>
+              <td>0.28 % </td>
+              <td>
+                <p>&nbsp;</p>
+                <p><strong>Yes</strong></p>
+              </td>
+              <td><strong>Yes</strong></td>
+              <td><strong>Yes</strong>, item names are included in the file</td>
+            </tr>
+            <tr>
+              <td height="42"><a href="https://www.philippe-fournier-viger.com/spmf/datasets/foodmart_utility_timestamp.txt">foodmart_utility_timestamp</a></td>
+              <td>dataset of customer transactions from a retail store, obtained
+                and transformed from SQL-Server 2000</td>
+              <td>4,141</td>
+              <td>1,559</td>
+              <td>4.42</td>
+              <td>0.28 % </td>
+              <td>Yes</td>
+              <td>No (synthetic) </td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td height="23"><a href="https://www.philippe-fournier-viger.com/spmf/datasets/retail_utility_timestamp.txt">retail_utility_timestamp</a>
+              </td>
+              <td><strong>customer transactions</strong> from an anonymous
+                Belgian retail store.<br>
+                (source FIMI: http://fimi.ua.ac.be/data/)</td>
+              <td>88,162</td>
+              <td>16,470</td>
+              <td>10,30</td>
+              <td>0.06 % </td>
+              <td>No (synthetic) </td>
+              <td>No (synthetic) </td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td height="23"><a href="https://www.philippe-fournier-viger.com/spmf/datasets/kosarak_utility_timestamp.txt">kosarak_utility_timestamp</a></td>
+              <td>transactions from click-stream data from an hungarian news
+                portal.<br>
+                (source: FIMI)</td>
+              <td>990,002</td>
+              <td>41,270</td>
+              <td>8.1</td>
+              <td>0.02 %</td>
+              <td>No (synthetic) </td>
+              <td>No (synthetic) </td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td height="23"><a href="https://www.philippe-fournier-viger.com/spmf/datasets/mushroom_utility_timestamp.txt">mushroom_utility_timestamp</a></td>
+              <td>
+                <p>prepared based on the UCI mushrooms dataset<br>
+                  (source: FIMI)</p>
+              </td>
+              <td>8,416</td>
+              <td>119</td>
+              <td>23</td>
+              <td>19.33 %</td>
+              <td>No (synthetic) </td>
+              <td>No (synthetic) </td>
+              <td>No</td>
+            </tr>
+          </tbody>
+        </table>
+      
+    <h4><strong><a name="c4"></a>Datasets</strong> <strong>for high utility itemset mining with
+          negative unit profit values. </strong></h4>
+        <p>Here are a few <strong>transaction databases </strong> in SPMF
+          format for <strong>high-utility itemset mining with negative unit
+            profit values</strong>. Those datasets have been generated to be
+          used in the <strong>FHN </strong>paper (Fournier-Viger et al., 2014)
+          and can be used with the FHN and HUINIV-Mine algorithms. See the FHN
+          paper for details. </p>
+        <table border="1">
+          <tbody>
+            <tr>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Dataset name </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Description</strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Transaction
+                  count </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Item count (I)
+                </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Average item
+                  count per transaction (A) </strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Density (%) <br>
+                  (A / I ) * 100</strong></td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Has real
+                  utility values</strong>?</td>
+              <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Has item
+                  names? </strong></td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/ndatasets/retail_negative.txt">retail_negative,</a><a
+
+                  href="https://www.philippe-fournier-viger.com/spmf/datasets/retail_utility_spmf.txt"></a></td>
+              <td><strong>customer transactions</strong> from an anonymous
+                Belgian retail store.<br>
+                (source FIMI: http://fimi.ua.ac.be/data/)</td>
+              <td>88,162</td>
+              <td>16470</td>
+              <td>10,30</td>
+              <td>0.06 %</td>
+              <td>No (synthetic) </td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="datasets/ndatasets/mushroom_negative.txt">mushroom_negative</a></td>
+              <td>
+                <p>prepared based on the UCI mushrooms dataset<br>
+                  (source: FIMI)</p>
+              </td>
+              <td>8,416</td>
+              <td>119</td>
+              <td>23</td>
+              <td>19.33 %</td>
+              <td>No (synthetic) </td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/ndatasets/pumsb_negative.txt">pumsb_negative</a>,
+              </td>
+              <td>
+                <p>census data for population and housing<br>
+                  (source: FIMI)<br>
+                </p>
+              </td>
+              <td>49,046</td>
+              <td> 2113</td>
+              <td>74</td>
+              <td>3.50 %</td>
+              <td>No (synthetic) </td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/ndatasets/chess_negative.txt">chess_negative</a>,
+              </td>
+              <td>prepared based on the UCI chess dataset<br>
+                (source: FIMI)</td>
+              <td>3,196</td>
+              <td>75</td>
+              <td>37</td>
+              <td>49.33 %</td>
+              <td>No (synthetic) </td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/ndatasets/accidents_negative.txt">accidents_negative</a>,<a
+
+                  href="https://www.philippe-fournier-viger.com/spmf/datasets/accidents.txt"></a></td>
+              <td>anonymized traffic accident data (source: FIMI)</td>
+              <td>340,183</td>
+              <td>468</td>
+              <td>33.8</td>
+              <td>7.22 %</td>
+              <td>No (synthetic) </td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/ndatasets/kosarak_negative.txt">kosarak_negative</a></td>
+              <td>transactions from click-stream data from an hungarian news
+                portal.<br>
+                (source: FIMI)</td>
+              <td>990,002</td>
+              <td>41270</td>
+              <td>8.1</td>
+              <td>0.02 %</td>
+              <td>No (synthetic) </td>
+              <td>No</td>
+            </tr>
+          </tbody>
+        </table>
+      
+      <h4><strong><a name="c5"></a>Datasets</strong> <strong>for high utility quantitative
+          itemset mining</strong></h4>
+        <p>The following <strong>datasets</strong> have been used for the <a href="https://www.philippe-fournier-viger.com/2021_APIN_FHUQI_quantitative_high_utility_itemset.pdf"><strong>FHUQI-Miner
+              </strong>paper</a> (<strong>Nouioua et al., 2021</strong>) about <strong>high
+            utility quantitative itemset mining, </strong>and can also be used
+          with the <strong>VHUQI</strong> algorithm. For these algorithms, two
+          files are provided for each dataset: the first file contains
+          transactions with quantities for each item (e.g. <strong>retail.txt</strong>).
+          The second file contains the unit profit or weight of each item (e.g.
+          <strong>retail1profit.txt</strong>). For more details about the
+          format, please see the documentation page about FHUQI-Miner or VHUQI.</p>
+      
+      <table border="1">
+        <tbody>
+          <tr>
+            <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Dataset name </strong></td>
+            <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Description</strong></td>
+            <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Transaction
+                count </strong></td>
+            <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Item count (I) </strong></td>
+            <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Average item
+                count per transaction (A) </strong></td>
+            <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Density (%) <br>
+                (A / I ) * 100</strong></td>
+            <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Has real utility
+                and quantityvalues</strong>?</td>
+            <td bordercolor="#F0F0F0" bgcolor="#FFFFCC"><strong>Has item names?
+              </strong></td>
+          </tr>
+          <tr>
+            <td>
+              <p><a href="https://www.philippe-fournier-viger.com/spmf/datasets/quantitative/retail.txt">retail.txt</a></p>
+              <p><a href="https://www.philippe-fournier-viger.com/spmf/datasets/quantitative/retailf1profit.txt">retailf1profit.txt</a></p>
+            </td>
+            <td><strong>customer transactions</strong> from an anonymous Belgian
+              retail store.<br>
+              (<strong>note:</strong> this version of the dataset has been
+              adaptedfor <em>high utility quantitative itemset mining </em>)</td>
+            <td>88162</td>
+            <td>16470</td>
+            <td>10.30</td>
+            <td>0.06 %</td>
+            <td>No (synthetic) </td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td>
+              <p><a href="https://www.philippe-fournier-viger.com/spmf/datasets/quantitative/pumsb.txt">pumsb.txt</a></p>
+              <p><a href="https://www.philippe-fournier-viger.com/spmf/datasets/quantitative/pumsbf1profit.txt">pumsbf1profit.txt</a></p>
+              <p>&nbsp;</p>
+            </td>
+            <td>
+              <p>census data for population and housing<br>
+                (<strong>note:</strong> this version of the dataset has been
+                adaptedfor <em>high utility quantitative itemset mining </em>)<br>
+              </p>
+            </td>
+            <td>49046</td>
+            <td> 2113</td>
+            <td>74</td>
+            <td>3.50 %</td>
+            <td>No (synthetic) </td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td>
+              <p><a href="https://www.philippe-fournier-viger.com/spmf/datasets/quantitative/connect.txt">connect.txt</a></p>
+              <p><a href="https://www.philippe-fournier-viger.com/spmf/datasets/quantitative/connectf1profit.txt">connect1profit.txt</a></p>
+            </td>
+            <td>prepared based on the UCI connect-4 dataset <br>
+              (<strong>note:</strong> this version of the dataset has been
+              adapted for <em>high utility quantitative itemset mining </em>)</td>
+            <td>67557 </td>
+            <td>129</td>
+            <td>43</td>
+            <td>33.33 %</td>
+            <td>No (synthetic) </td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td>
+              <p><a href="https://www.philippe-fournier-viger.com/spmf/datasets/quantitative/bms.txt">bms.txt</a></p>
+              <p><a href="https://www.philippe-fournier-viger.com/spmf/datasets/quantitative/bmsf1profit.txt">bmsf1profit.txt</a></p>
+              <p>&nbsp;</p>
+            </td>
+            <td>click-stream data from a webstore used in KDD-Cup 2000 <br>
+              (<strong>note:</strong> this version of the dataset has been
+              adaptedfor <em>high utility quantitative itemset mining </em>)</td>
+            <td>59601</td>
+            <td>497</td>
+            <td>2.42</td>
+            <td>0.51 %</td>
+            <td>No (synthetic) </td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td>
+              <p><a href="https://www.philippe-fournier-viger.com/spmf/datasets/quantitative/bms2.txt">bms2.txt</a></p>
+              <p><a href="https://www.philippe-fournier-viger.com/spmf/datasets/quantitative/bmsf2profit.txt">bmsf2profit.txt</a></p>
+            </td>
+            <td>
+              <p>click-stream data from a webstore used in KDD-Cup 2000 </p>
+              <p>(<strong>note:</strong> this version of the dataset has been
+                adaptedfor <em>high utility quantitative itemset mining </em>)</p>
+            </td>
+            <td>77512 </td>
+            <td>3340</td>
+            <td>4.62</td>
+            <td>0.14 %</td>
+            <td>No (synthetic) </td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td>
+              <p><a href="https://www.philippe-fournier-viger.com/spmf/datasets/quantitative/foodmart.txt">foodmart</a></p>
+              <p><a href="https://www.philippe-fournier-viger.com/spmf/datasets/quantitative/foodmartf1profit.txt">foodmartf1profit.txt</a></p>
+            </td>
+            <td>dataset of customer transactions from a retail store, obtained
+              and transformed from SQL-Server 2000<br>
+              (<strong>note:</strong> this version of the dataset has been
+              adaptedfor <em>high utility quantitative itemset mining </em>)</td>
+            <td>4141</td>
+            <td>1559</td>
+            <td>4.42</td>
+            <td>0.28 %</td>
+            <td>Yes</td>
+            <td>No</td>
+          </tr>
+        </tbody>
+      </table>
+      
+        <h4><strong><a name="c6"></a>Datasets</strong> <strong>for on-shelf high-utility itemset
+            mining with negative unit profit values</strong></h4>
+        <ul>
+        
+          <p>Here are a few <strong>transaction databases </strong>in SPMF
+            format for <strong>on-shelf high-utility itemset mining with
+              negative unit profit values</strong>. Those datasets have been
+            generated to be used in the <strong>FOSHU </strong>paper
+            (Fournier-Viger et al., 2015) and can be used with the FOSHU and
+            TS-HOUN algorithms. See the FOSHU paper for details.</p>
+        
+        <ul>
+          <li>kosarak (<a href="datasets/onshelf/kosarak_p5_negative.txt">5
+              periods</a>, <a href="datasets/onshelf/kosarak_p25_negative.txt">25
+              periods</a>, <a href="datasets/onshelf/kosarak_p50_negative.txt">50
+              periods</a>)</li>
+          <li>accidents (<a href="datasets/onshelf/accidents_p5_negative.txt">5
+              periods</a>, <a href="datasets/onshelf/accidents_p25_negative.txt">25
+              periods</a>, <a href="datasets/onshelf/accidents_p50_negative.txt">50
+              periods</a>)</li>
+          <li>chess (<a href="datasets/onshelf/chess_p5_negative.txt">5 periods</a>,
+            <a href="datasets/onshelf/chess_p25_negative.txt">25 periods</a>, <a
+
+              href="datasets/onshelf/chess_p50_negative.txt">50 periods</a>)</li>
+          <li>mushroom (<a href="datasets/onshelf/mushroom_p5_negative.txt">5
+              periods</a>, <a href="datasets/onshelf/mushroom_p25_negative.txt">25
+              periods</a>, <a href="datasets/onshelf/mushroom_p50_negative.txt">50
+              periods</a>)</li>
+          <li>pumsb (<a href="datasets/onshelf/pumsb_p5_negative.txt">5 periods</a>,
+            <a href="datasets/onshelf/pumsb_p25_negative.txt">25 periods</a>, <a
+
+              href="datasets/onshelf/pumsb_p50_negative.txt">50 periods</a>)</li>
+          <li>retail (<a href="datasets/onshelf/retail_p5_negative.txt">5
+              periods</a>, <a href="datasets/onshelf/retail_p25_negative.txt">25
+              periods</a>, <a href="datasets/onshelf/retail_p50_negative.txt">50
+              periods</a>) </li>
+        </ul>
+      </ul>
+      <h4><strong><a name="c7"></a>Datasets for </strong><strong>high-utility sequential rule
+          mining</strong> or <strong>high-utility sequential pattern mining</strong></h4>
+        <ul>
+      
+        <p>Some <strong>sequence databases </strong>in SPMF format for <strong>high-utility
+            sequential rule mining</strong> or <strong>high-utility sequential
+            pattern mining</strong>. Those datasets were generated for the <strong>HUSRM</strong>
+          paper (Zida et al, 2015), and can be used with the HUSRM and USpan
+          algorithm. See the HUSRM paper for more information.</p>
+        <table border="1">
+          <tbody>
+            <tr>
+              <td bgcolor="#FFFFCC"><strong>Dataset name </strong></td>
+              <td bgcolor="#FFFFCC"><strong>Description</strong></td>
+              <td bgcolor="#FFFFCC"><strong>Sequence count </strong></td>
+              <td bgcolor="#FFFFCC"><strong>Item count </strong></td>
+              <td bgcolor="#FFFFCC"><strong>Average sequence length </strong></td>
+              <td bgcolor="#FFFFCC"><strong>Has item names? </strong></td>
+            </tr>
+            <tr>
+              <td><a href="datasets/husp/BMS_sequence_utility.txt">BMS_sequence_utility</a><a
+
+                  href="https://www.philippe-fournier-viger.com/spmf/datasets/BMS2.txt">)</a></td>
+              <td>This dataset was used in KDD CUP 2000. It contains clickstream
+                data from an e-commerce</td>
+              <td>77,512 </td>
+              <td>3,340</td>
+              <td>4.62</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td>
+                <p><a href="datasets/husp/kosarak10k_sequence_utility.txt">Kosarak10k_sequence_utility</a><a
+
+                    href="https://www.philippe-fournier-viger.com/spmf/datasets/kosarak_sequences.txt"></a></p>
+              </td>
+              <td>This is a subset of <strong>10,000 sequences </strong>of the
+                <strong>Kosarak </strong>click-stream data from an hungarian
+                news portal.<br>
+                The dataset was converted in SPMF format using the original data
+                from: http://fimi.ua.ac.be/data/. <br>
+                (<strong>2020-1-10</strong>: <em>the kosarak dataset file has
+                  been updated as someone informed me that some sequences were
+                  missing</em>)</td>
+              <td>10,000</td>
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="datasets/husp/SIGN_sequence_utility.txt">SIGN_sequence_utility</a><a
+
+                  href="datasets/SIGN.txt"></a></td>
+              <td>a dataset of sign language utterance containing approximately
+                800 sequences<br>
+                The original dataset file in another format can be obtained <a
+
+                  href="http://cs-people.bu.edu/panagpap/Research/asl_mining.htm">here</a>
+                with more details on this dataset.</td>
+              <td>~800</td>
+              <td>267</td>
+              <td>51.997</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td><a href="datasets/husp/BIBLE_sequence_utility.txt">Bible_sequence_utility</a><a
+
+                  href="datasets/BIBLE.txt"></a></td>
+              <td>
+                <p>This dataset is a conversion of the Bible into a sequence
+                  database (each word is an item). </p>
+              </td>
+              <td>36,369</td>
+              <td>13,905</td>
+              <td> 21.6</td>
+              <td><strong>Yes<br>
+                </strong><a href="datasets/bible_with_items.txt">Bible_with_items</a></td>
+            </tr>
+            <tr>
+              <td><a href="datasets/husp/FIFA_sequence_utility.txt">FIFA_sequence_utility</a><a
+
+                  href="https://www.philippe-fournier-viger.com/spmf/datasets/FIFA.txt"></a></td>
+              <td>Click stream data from the website of FIFA World Cup 98 </td>
+              <td>20,450</td>
+              <td> 2,990</td>
+              <td>34.74</td>
+              <td>No</td>
+            </tr>
+          </tbody>
+        </table>
+      
+    </ul>
+        <h3><strong><span class="centered"><a name="d4"></a>Datasets for </span> Cost-effective
+        Pattern Mining </strong>(with utility and cost) </h3>
+        <p>In the paper by Fournier-Viger et al. (2020), it was proposed to find <strong>cost-effective
+          patterns</strong> in <strong>sequences</strong> <strong>with</strong>
+        <strong>utility</strong> and <strong>cost</strong> <strong>information.
+          </strong>This type of data is a set of sequences where each sequence
+        is an ordered list of activity, where an activity has a cost value
+        representing the amount of resources (e.g. time, money) spent to perform
+        the activity. Moreover, each sequence has a utility label that can be
+        either binary or numeric, which represents a positive or negative
+        outcome. This type of data can represent for example how students use an
+        e-learning system. In that case, each sequence is a list of activities
+        or sessions performed by a student, and the cost represents the time
+        spent for studying for each activity. On the other hand, the utility
+        represents the outcome of a sequence such as the final exam score of a
+        student after performing the acitivities (numeric utility), or whether
+        he passed or failed the course or exam (binary utility). Another example
+        of <strong>cost-utility sequences </strong>is hospital data, where a
+        sequence is a list of medicines taken by some patient, the cost
+        indicates how much money or time was spent for these medical treaments,
+        and the utility is whether a patient has cured or died. </p>
+      <p>From <strong>cost/utility sequences</strong>, we can then find
+        patterns that have a <strong>low-cost </strong>but typically lead to a<strong>
+          high utility (</strong>called<strong> low-cost high utility patterns</strong>
+        or <strong>cost-efficient patterns</strong>) by applying algorithms
+        such as <strong>CEPB, CEPN </strong>and <strong>CorCEPB</strong>. In
+        the above examples, some cost-effective patterns may be that studying
+        some e-learning materials A and B typically require not much time but
+        leadw to high scores, or that taking some given medicines has a low cost
+        but a high possibility of success to cure a disease. </p>
+      <p>Here are some datasets:</p>
+      <table border="1">
+        <tbody>
+          <tr>
+            <td bgcolor="#FFFFCC"><strong>Dataset name </strong></td>
+            <td bgcolor="#FFFFCC"><strong>Description</strong></td>
+            <td bgcolor="#FFFFCC"><strong>Sequence count </strong></td>
+            <td bgcolor="#FFFFCC"><strong>Type of utility </strong></td>
+          </tr>
+          <tr>
+            <td><a href="datasets/allSessions_binary.txt">allSessions_binary.txt</a></td>
+            <td>
+              <p>This is an e-learning dataset, where each sequence represents a
+                student using an e-learning platform named <em>Deeds</em>, and
+                there are 62 students.</p>
+              <p> A sequence contains a list of sessions taken by a student.
+                There are six different sessions denoted as 1,2,3,4,5 and 6. In
+                a sequence, each session has a <strong>cost</strong> value that
+                represents the time spent by a student on the session for
+                studying or doing some learning activities. </p>
+              <p>Each sequence has a <strong>binary utility</strong> value,
+                which indicates the outcome of the sequence. Here the utility
+                value indicates if a student has failed or passed the final exam
+                after doing the learning sessions. </p>
+              <p>This dataset can be used with the <strong>CEPB</strong> and <strong>CorCEPB</strong>
+                algorthms </p>
+              <p>Note: This dataset was created by converting public data from
+                Vahdat et al to the SPMF format. A threshold of 60% was assumed
+                to be the score for passing the final exam.</p>
+            </td>
+            <td>62</td>
+            <td>Binary</td>
+          </tr>
+          <tr>
+            <td><a href="session6_numeric.txt">session6_numeric.txt</a></td>
+            <td>
+              <p>This dataset is also an e-learning dataset from students using
+                an e-learning platform named<em> Deeds</em>. This dataset
+                contains 50 sequences. </p>
+              <p>Each sequence indicates the list of activities done by a
+                student during a learning session called SESSION 6. Each
+                activity has a <strong>cost</strong> value representing the
+                amount of time that the student has spent doing the activity.
+                Moreover, each sequence has a <strong>numeric utility </strong>value
+                indicating the score that the student had at the test at the end
+                of SESSION 6. </p>
+              <p>This dataset can be used with the <strong>CEPN</strong>
+                algorthm.</p>
+              <p>Note: This dataset was created by converting public data from
+                Vahdat et al to the SPMF format. Note that this file only
+                contains <strong>SESSION 6</strong><strong>.</strong></p>
+            </td>
+            <td>50</td>
+            <td>Numeric</td>
+          </tr>
+          <tr>
+            <td><a href="datasets/session6_binary.txt">session6_binary.txt</a></td>
+            <td>
+              <p>This is the same as above, except that the utility has been
+                converted to binary values instead of numeric values.</p>
+              <p>This dataset can be used with the <strong>CEPB</strong> and <strong>CorCEPB</strong>
+                algorthms.</p>
+            </td>
+            <td>50</td>
+            <td>Binary</td>
+          </tr>
+          <tr>
+            <td><a href="datasets/session5_numeric.txt">session5_numeric.txt</a></td>
+            <td>This is similar to above, except that this is the data for
+              SESSION 5 (numeric utility). </td>
+            <td>53</td>
+            <td>Numeric</td>
+          </tr>
+          <tr>
+            <td><a href="datasets/session4_numeric.txt">session4_numeric.txt</a></td>
+            <td>This is similar to above, except that this is the data for
+              SESSION 4 (numeric utility). </td>
+            <td>54</td>
+            <td>Numeric</td>
+          </tr>
+          <tr>
+            <td><a href="datasets/session4_binary.txt">session4_binary.txt</a></td>
+            <td>This is similar to above, except that this is the data for
+              SESSION 4 (binary utility). </td>
+            <td>54</td>
+            <td>Binary</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>The original dataset was made public by Vahdat et al. and can be <a href="EPMData.zip">downloaded
+          here</a> but it is <strong>not</strong> in SPMF format. However, it
+        gives a lot of details about the meaning of the data. This is very
+        useful for understanding the meaning of the patterns found in the above
+        data. This is the paper by Vahdat et al.:</p>
+      <p><em>M. Vahdat, L. Oneto, D. Anguita, M. Funk, M. Rauterberg.: A
+          learning analytics approach to correlate the academic achievements of
+          students with interaction data from an educational simulator. In: G.
+          Conole et al. (eds.): EC-TEL 2015, LNCS 9307, pp. 352-366. Springer
+          (2015).<br>
+          DOI: 10.1007/978-3-319-24258-3 26 </em></p>
+      <p>And this is the paper about cost-effective pattern mining with the
+        CEPB, CEPN and CorCEPB algorithms, for which the datasets have prepared
+        for SPMF:</p>
+      <p><em>Fournier-Viger, P., Li, J., Lin, J. C., Chi, T. T., Kiran, R. U.
+          (2020). <a href="COST_UTILITY_PATTERNS.pdf">Mining Cost-Effective
+            Patterns in Event Logs</a>. Knowledge-Based Systems (KBS), Elsevier</em></p>
+      <p><strong>New: </strong>I have created some versions of the above
+        datasets where sequences with cost values have been transformed into <strong>transactions
+          with cost values</strong>. If you use those transformed transaction datasets please cite our paper &quot;LCIM: Mining Low Cost and High Utility Itemsets&quot; published in MIWAI 2022 by Nawaz et al., 2022. </p>
+      <table border="1">
+        <tbody>
+          <tr>
+            <td bgcolor="#FFFFCC"><strong>Dataset name </strong></td>
+            <td bgcolor="#FFFFCC"><strong>Description</strong></td>
+            <td bgcolor="#FFFFCC"><strong>Transaction count </strong></td>
+            <td bgcolor="#FFFFCC"><strong>Type of utility </strong></td>
+          </tr>
+          <tr>
+            <td><a href="datasets/costtrans/allSessions_binary_trans.txt">allSessions_binary_trans.txt</a></td>
+            <td>
+              <p>See above </p>
+            </td>
+            <td>62</td>
+            <td>Binary</td>
+          </tr>
+          <tr>
+            <td><a href="datasets/costtrans/session6_numeric_trans.txt">session6_numeric_trans.txt</a></td>
+            <td>
+              <p>See above </p>
+            </td>
+            <td>50</td>
+            <td>Numeric</td>
+          </tr>
+          <tr>
+            <td><a href="datasets/costtrans/session6_binary_trans.txt">session6_binary_trans.txt</a></td>
+            <td>
+              <p>See above </p>
+            </td>
+            <td>50</td>
+            <td>Binary</td>
+          </tr>
+          <tr>
+            <td><a href="datasets/costtrans/session5_numeric_trans.txt">session5_numeric_trans.txt</a></td>
+            <td>See above </td>
+            <td>53</td>
+            <td>Numeric</td>
+          </tr>
+          <tr>
+            <td><a href="datasets/costtrans/session4_numeric_trans.txt">session4_numeric_trans.txt</a></td>
+            <td>See above . </td>
+            <td>54</td>
+            <td>Numeric</td>
+          </tr>
+          <tr>
+            <td><a href="datasets/costtrans/session4_binary_trans.txt">session4_binary_trans.txt</a></td>
+            <td>See above </td>
+            <td>54</td>
+            <td>Binary</td>
+          </tr>
+        </tbody>
+      </table>
+    
+    <h3><a name="d5"></a>Datasets for graph pattern mining </h3>
+    <h4><strong><span class="centered"><a name="d6"></a>Datasets for </span> mining subgraphs in
+      a graph database </strong></h4>
+    <p>Here are a few datasets that can be used to evaluate <strong>subgraph
+          mining algorithms</strong> such as <strong>TKG, gSpan</strong> and <strong>cgSpan</strong>.
+        Each dataset contains a graph database (multiple graphs).</p>
+      <table border="1">
+        <tbody>
+          <tr>
+            <td bgcolor="#FFFFCC"><strong>Dataset name</strong></td>
+            <td bgcolor="#FFFFCC"><strong>Description</strong></td>
+            <td bgcolor="#FFFFCC"><strong>Graph count</strong></td>
+            <td bgcolor="#FFFFCC"><strong>Average node count per graph</strong></td>
+            <td bgcolor="#FFFFCC"><strong>Average edge count per graph</strong></td>
+            <td bgcolor="#FFFFCC"><strong>Vertex label count</strong></td>
+            <td bgcolor="#FFFFCC"><strong>Edge label count</strong></td>
+            <td bgcolor="#FFFFCC"><strong>Label file?</strong></td>
+          </tr>
+          <tr>
+            <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/DataChemical_340.txt">Chemical_340</a></td>
+            <td>a database of 340 graphs about chemistry</td>
+            <td><p>340</p></td>
+            <td>27.02</td>
+            <td>27.40</td>
+            <td>66</td>
+            <td>4</td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td><a href="https://www.philippe-fournier-viger.com/spmf/datasets/Compound_422.txt">Coumpounds_422</a></td>
+            <td>a database of 422 graphs about coumpounds</td>
+            <td>422</td>
+            <td>39.61</td>
+            <td>42.31</td>
+            <td>21</td>
+            <td>4</td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td><a href="datasets/dang/mutag_graph.txt">Mutag</a></td>
+            <td>a dataset of nitro compounds labeled regarding whether they have a mutagenic effect on a bacterium</td>
+            <td>188</td>
+            <td>17.93</td>
+            <td>19.79</td>
+            <td>7</td>
+            <td>11</td>
+            <td><a href="datasets/dang/mutag_label.txt">Yes</a></td>
+          </tr>
+          <tr>
+            <td><a href="datasets/dang/ptc_graph.txt">PTC</a></td>
+            <td>chemical compounds where their labels indicate carcinogenicity for male and female rats</td>
+            <td>344</td>
+            <td>25.55</td>
+            <td>25.96</td>
+            <td>19</td>
+            <td>1</td>
+            <td><a href="datasets/dang/ptc_label.txt">Yes</a></td>
+          </tr>
+          <tr>
+            <td><a href="datasets/dang/nci1_graph.txt">NCI1</a></td>
+            <td>datasets of chemical compounds screened for activity against non-small cell lung cancer and ovarian cancer cell lines</td>
+            <td>4,110</td>
+            <td>29.87</td>
+            <td>32.30</td>
+            <td>37</td>
+            <td>3</td>
+            <td><a href="datasets/dang/nci1_label.txt">Yes</a></td>
+          </tr>
+          <tr>
+            <td><a href="datasets/dang/nci109_graph.txt">NCI109</a></td>
+            <td>datasets of chemical compounds screened for activity against non-small cell lung cancer and ovarian cancer cell lines</td>
+            <td>4,127</td>
+            <td>29.68</td>
+            <td>32.13</td>
+            <td>38</td>
+            <td>3</td>
+            <td><a href="datasets/dang/nci109_label.txt">Yes</a></td>
+          </tr>
+          <tr>
+            <td><a href="datasets/dang/proteins_graph.txt">Proteins</a></td>
+            <td>graph collection where nodes represent secondary structure elements and edges indicate neighborhood in the amino-acid sequence or in 3-dimension space</td>
+            <td>1,113</td>
+            <td>39.06</td>
+            <td>72.82</td>
+            <td>3</td>
+            <td>1</td>
+            <td><a href="datasets/dang/proteins_label.txt">Yes</a></td>
+          </tr>
+          <tr>
+            <td><a href="datasets/dang/enzymes_graph.txt">Enzymes</a></td>
+            <td>protein tertiary structures obtained from the BRENDA enzyme database</td>
+            <td>600</td>
+            <td>32.63</td>
+            <td>62.14</td>
+            <td>3</td>
+            <td>1</td>
+            <td><a href="datasets/dang/enzymes_label.txt">Yes</a></td>
+          </tr>
+          <tr>
+            <td><a href="datasets/dang/dd_graph.txt">DandD</a></td>
+            <td>a dataset of protein structures where nodes are amino acids and edges indicate spatial closeness, which are classified into enzymes or non-enzymes</td>
+            <td>1,178</td>
+            <td>284.31</td>
+            <td>715.66</td>
+            <td>82</td>
+            <td>1</td>
+            <td><a href="datasets/dang/dd_label.txt">Yes</a></td>
+          </tr>
+          <tr>
+            <td><a href="datasets/dang/imdb_binary_graph.txt">IMDB-B</a></td>
+            <td>a movie collaboration dataset that is collected from IMDB. Each graph is an ego-network where nodes represent actors/actresses and edges indicate if they appear in the same movie. Each graph is categorized into one of two genres (Action or Romance).</td>
+            <td>1,000</td>
+            <td>19.77</td>
+            <td>96.53</td>
+            <td>65</td>
+            <td>1</td>
+            <td><a href="datasets/dang/imdb_binary_label.txt">Yes</a></td>
+          </tr>
+          <tr>
+            <td height="40"><a href="datasets/dang/5newsgroup_graph.zip">5newsgroup</a></td>
+            <td>social network dataset</td>
+            <td>4976</td>
+            <td>86.86</td>
+            <td>352.65</td>
+            <td>27,881</td>
+            <td>1</td>
+            <td><a href="datasets/dang/5newsgroup_label.txt">Yes</a></td>
+          </tr>
+          <tr>
+            <td><a href="datasets/dang/collab_graph.zip">collab</a></td>
+            <td>social network dataset</td>
+            <td>5,000</td>
+            <td>74.49</td>
+            <td>2424.63</td>
+            <td>367</td>
+            <td>1</td>
+            <td><a href="datasets/dang/collab_label.txt">Yes</a></td>
+          </tr>
+          <tr>
+            <td><a href="datasets/dang/reddit_binary_graph.zip">reddit_binary</a></td>
+            <td>social network dataset</td>
+            <td>2,000</td>
+            <td>429.61</td>
+            <td>497.75</td>
+            <td>565</td>
+            <td>1</td>
+            <td><a href="datasets/dang/reddit_binary_label.txt">Yes</a></td>
+          </tr>
+          <tr>
+            <td><a href="datasets/dang/reddit_multi_12K_graph.zip">reddit_multi_12k</a></td>
+            <td>social network dataset</td>
+            <td>11,929</td>
+            <td>391.41</td>
+            <td>456.89</td>
+            <td>909</td>
+            <td>1</td>
+            <td><a href="datasets/dang/reddit_multi_12K_label.txt">Yes</a></td>
+          </tr>
+          <tr>
+            <td><a href="datasets/dang/reddit_multi_5K_graph.zip">reddit_multi_5k</a></td>
+            <td>social network dataset</td>
+            <td>4,999</td>
+            <td>508.51</td>
+            <td>594.87</td>
+            <td>733</td>
+            <td>1</td>
+            <td><a href="datasets/dang/reddit_multi_5K_label.txt">Yes</a></td>
+          </tr>
+          <tr>
+            <td><a href="datasets/dang/webkb_graph.zip">webkb</a></td>
+            <td>social network dataset</td>
+            <td>4,167</td>
+            <td>77.80</td>
+            <td>318.15</td>
+            <td>4</td>
+            <td>7,770</td>
+            <td><a href="datasets/dang/webkb_label.txt">Yes</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <p>The <strong>two first datasets</strong> were obtained from the Web and
+        are probably the<strong> two most famous datasets</strong> in <strong>subgraph
+      mining</strong>. </p>
+      <p>The <strong>other datasets </strong>were prepared by <strong>Dang
+          Nguyen et al. </strong> based on data obtained from various data
+        sources, and obtained from github.com/nphdang/gspan/, and used in this
+        paper: Dang Nguyen, Wei Luo, Tu Dinh Nguyen, Svetha Venkatesh, Dinh
+        Phung (2018). Learning Graph Representation via Frequent Subgraphs. SDM
+        2018, San Diego, USA. SIAM, 306-314.). The descriptions of these latter
+        datasets in the above table were obtained from that paper too. </p>
+      <p>Note that some datasets have some label files. Those label files are
+        not used by the algorithms offered in SPMF. They were generated when the
+        datasets were prepared. These files indicates the correspondence between
+        labels in the original datasets and those of the transformed datasets
+        offered on this page. These label files are offered here because it can
+        be useful to some people perhaps.</p>
+    
+    <h4><strong><span class="centered">Datasets for </span>Mining Patterns in
+        Dynamic Attributed Graphs </strong><a name="d7"></a></h4>
+      <p>A <strong>dynamic attributed graph</strong> is a graph that changes
+        over time and where vertices may have multiple numerical attributes.
+        Some algorithms are designed to discover interesting patterns in dynamic
+        attributed graphs such as AER-Miner and TSEQMiner, offered in SPMF. The
+        datasets used in the <a href="https://www.philippe-fournier-viger.com/2020_DAWAK_Attribute_Evolution_rules.pdf">AER-Miner</a>
+        and <a href="https://www.philippe-fournier-viger.com/2019_KBS_Mining_significant_trend_sequences.pdf">TSEQMiner</a>
+        papers are available here: <a href="datasets/DYNAMIC_GRAPH_DATASETS_REDUCED.zip">the
+          datasets (ZIP, 5.0 MB) </a>and the <a href="datasets/DYNAMIC%20GRAPH%20DATASETS.zip">
+          and some variations for scalability experiments (ZIP, 138 MB)</a>.
+        Please see these papers for a description of these datasets. </p>
+    
+    <h3><strong><span class="centered">D<a name="d8"></a>atasets for </span>Clustering</strong></h3>
+      <p>A<a href="PatternGeneratorClustering.m"> Matlab program</a> provided by
+        <strong>Ashwin Balani </strong>to generate synthetic clustering
+        datasets<strong>.</strong></p>
+      &nbsp; 
+    
+  </body>
+</html>
+  </article>
+ </div>
+</div>
+<div id="sidebar"> <a href="https://www.philippe-fournier-viger.com/spmf/"><img src="spmf.png" alt="SPMF"></a>
+<p align="center" class="style4">An Open-Source Data Mining Library
+<p>
+<nav id="nav">
+ <ul><li> <a href="index.php">Introduction</a> </li><li> <a href="index.php?link=algorithms.php">Algorithms</a> </li><li> <a href="index.php?link=download.php">Download</a> </li><li> <a href="index.php?link=documentation.php">Documentation</a> </li><li class="current"> <a href="index.php?link=datasets.php">Datasets</a> </li><li> <a href="index.php?link=FAQ.php">FAQ</a> </li><li> <a href="index.php?link=license.php">License</a> </li><li> <a href="index.php?link=contributors.php">Contributors</a> </li><li> <a href="index.php?link=citations.php">Citations</a> </li><li> <a href="index.php?link=performance.php">Performance</a> </li><li> <a href="index.php?link=developers.php">Developers's guide</a> </li><li> <a href="index.php?link=videos.php">Videos</a> </li><li> <a href="index.php?link=resources.php">Other resources</a> </li><li> <a href="index.php?link=spmfwrappers.php">Wrappers</a> </li>   <li><a href="https://forum2.philippe-fournier-viger.com/index.php" target="_blank">Forum </a></li>
+   <li><a href="https://data-mining.philippe-fournier-viger.com/" target="_blank">Blog</a></li>
+   <li><a href="http://www.philippe-fournier-viger.com/COURSES/Pattern_mining/index.php" target="_blank">The Pattern Mining Course</a></li>
+ </ul>
+ </nav>
+<section class="box text-style2">
+
+  <div class="inner">
+   <h6>
+    <span class="counter" style="padding: 1px 1px 1px 1px;background: #1b252a;border: 0px solid #cccccc;"><span  style="font: 13px;color: #f4f4f4; :link, :visited, :active, :link:hover, :visited:hover, :active:hover font: 13px;color: #f4f4f4;">3390797</span></span>
+</h6>
+  </div>
+ </section>
+<ul id="copyright"> 
+  <li class="title style1">Copyright &copy; 2008-2024 </li>
+  <li class="title style1"><a href="https://www.philippe-fournier-viger.com">Philippe Fournier-Viger</a></li>
+  <li class="title style1">All rights reserved.</li>
+ </ul>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="assets/js/browser.min.js"></script>
+<script src="assets/js/breakpoints.min.js"></script>
+<script src="assets/js/util.js"></script>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
