@@ -4,60 +4,48 @@ import java.io.*;
 import java.util.*;
 
 public class Main {
+
     public static void main(String[] args) throws IOException {
-        String filePath = "src/main/java/dataset/test.txt"; // Replace with your dataset path
-        int[] kValues = {5, 10, 20, 50};
+        String filePath1 = "src/main/java/dataset/test.txt";
+        String filePath2 = "src/main/java/dataset/chess_negative.txt";
+        String filePath3 = "src/main/java/dataset/mushroom_utility.txt";
 
-        System.out.println("Runtime for different k values:");
-        // Iterate over k values
-        for (int k : kValues) {
-            long startTime = System.currentTimeMillis(); // Start time
+        int k = 4; // Number of top-k itemsets to retrieve
+        int minUtil = 0; // Initial minimum utility
 
-            List<Transaction> transactions = DatasetParser.parseSPMFDataset(filePath);
-            List<Map.Entry<Integer, Integer>> topK = TopKHUIM.calculateTopKOptimized(transactions, k);
+        // Step 1: Parse the dataset
+        List<Transaction> transactions = DatasetParser.parseSPMFDataset(filePath1);
 
-            long endTime = System.currentTimeMillis(); // End time
-            double runtime = (endTime - startTime) / 1000.0; // Convert to seconds
+//        // Step 2: Test Parsing
+//        UtilityCalculator.testParsing(transactions);
+//
+//        // Step 3: Test Utility Calculation
+        UtilityCalculator.testUtilityCalculation(transactions);
 
-            System.out.printf("k = %d, Runtime = %.2f seconds\n", k, runtime);
+        // Step 4: Generate Ordered Items (for candidate generation)
+        Set<Integer> allItems = new HashSet<>();
+        for (Transaction t : transactions) {
+            allItems.addAll(t.items);
         }
+        Map<Integer, Integer> priu = UtilityCalculator.calculatePRIU(transactions, allItems);
+        List<Set<Integer>> orderedItems = UtilityCalculator.sortItemsByTotalOrder(priu);
+
+        // Step 5: Test Candidate Generation
+        UtilityCalculator.testCandidateGeneration(transactions, orderedItems, minUtil);
+
+        // Step 6: Test MinUtil Adjustment
+        Map<List<Integer>, Integer> liuStructure = UtilityCalculator.buildLIUStructure(transactions, new ArrayList<>(allItems));
+        UtilityCalculator.testMinUtilAdjustment(liuStructure, k, minUtil);
+
+        // Step 7: Test Pruning
+        Set<Set<Integer>> candidateItemsets = UtilityCalculator.generateCandidateItemsets(transactions, orderedItems, minUtil);
+        Map<Set<Integer>, Integer> itemsetUtilities = UtilityCalculator.calculateItemsetUtilities(transactions, candidateItemsets);
+        Map<Set<Integer>, Integer> psuMap = UtilityCalculator.calculatePSU(transactions, candidateItemsets);
+        UtilityCalculator.testPruning(itemsetUtilities, psuMap, minUtil);
+
+        // Step 8: Test Top-K Results
+        UtilityCalculator.testTopKResults(transactions, k);
     }
+
+
 }
-
-//    public static void main(String[] args) throws IOException {
-//        String filepath = "src/main/java/dataset/test.txt";
-//        int[] kValues = {5,10,20,50};
-//
-//        RuntimeVisualizer.plotRuntime(filepath, kValues);
-//
-//        List<Transaction> transactions = DatasetParser.parseSPMFDataset(filepath);
-//        int k = 5;
-//        List<Map.Entry<Integer,Integer>> topK = TopKHUIM.calculateTopKOptimized(transactions, k);
-//        System.out.println("\nTop-k High Utility Itemsets:");
-//
-//        for (Map.Entry<Integer, Integer> entry : topK) {
-//            System.out.printf("Itemset: %d, Net Utility: %d\n", entry.getKey(), entry.getValue());
-//        }
-//
-//    }
-
-    //  public class Main {
-    //    public static void main(String[] args) throws IOException {
-    //        String filePath = "src/main/java/dataset/test.txt"; // Your dataset path
-    //        List<Transaction> transactions = DatasetParser.parseSPMFDataset(filePath);
-    //        int k = 5;
-    //
-    //        Set<Integer> candidateItems = new HashSet<>();
-    //        for (Transaction t : transactions) {
-    //            candidateItems.addAll(t.items);
-    //        }
-    //
-    //        Map<Integer, Map<String, Integer>> itemsetUtilities =
-    //                UtilityCalculator.calculateItemsetUtilities(transactions, candidateItems);
-    //        List<Map.Entry<Integer, Integer>> topK =
-    //                TopKHUIM.calculateTopKOptimized(transactions, k);
-    //
-    //        // Print detailed analysis
-    ////        TopKHUIM.printDetailedAnalysis(itemsetUtilities, topK);
-    //    }
-    //}
