@@ -26,16 +26,16 @@ public class DatasetReader {
     private static Transaction parseTransaction(String line, int transactionID) {
         try {
             String[] parts = line.split(":");
-            if (parts.length != 4) {
+            if (parts.length != 3) {
                 return null;
             }
 
             List<Integer> items = parseIntegerList(parts[0]);
             int transactionUtility = Integer.parseInt(parts[1].trim());
             List<Integer> utilities = parseIntegerList(parts[2]);
-            int timestamp = Integer.parseInt(parts[3].trim());
+//            int timestamp = Integer.parseInt(parts[3].trim());
 
-            return new Transaction(transactionID, items, utilities, transactionUtility, timestamp);
+            return new Transaction(transactionID, items, utilities, transactionUtility, 0);
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             System.err.println("Error parsing line: " + line);
             return null;

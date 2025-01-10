@@ -14,13 +14,8 @@ public class Main {
             System.out.println("Transactions loaded: " + transactions.size());
 
 
-            ShortTimePeriodMining stp = new ShortTimePeriodMining(transactions, 10, 3, 0.01f);
+            ShortTimePeriodMining stp = new ShortTimePeriodMining(transactions, 1000, 0.0001f, 10);
             stp.run();
-            stp.dfs_v1(new ArrayList<>(), 0, new HashSet<>());
-            List<Itemset> topKItemsets = stp.getTopKItemsets();
-            for (Itemset itemset : topKItemsets) {
-                System.out.println(itemset);
-            }
         } catch (IOException e) {
             System.err.println("Error reading the dataset: " + e.getMessage());
         }
