@@ -383,7 +383,7 @@ public class TKN_HUI {
                 String key = subsetKey.toString().trim();
                 liuStructure.put(key, liuStructure.getOrDefault(key, 0) + subsetUtility);
             }
-//            System.out.println(liuStructure.toString());
+            System.out.println(liuStructure.toString());
         }
 
         return liuStructure;
@@ -395,10 +395,10 @@ public class TKN_HUI {
         // Priority queue to keep the top-k utilities
         PriorityQueue<Integer> topKQueue = new PriorityQueue<>(k);
 
-//        System.out.println("Starting LIU-E Strategy...");
+        System.out.println("Starting LIU-E Strategy...");
 
         for (int utility : liuStructure.values()) {
-//            System.out.println("Processing Utility: " + utility);
+            System.out.println("Processing Utility: " + utility);
 
             if (utility >= minUtil) {
                 topKQueue.offer(utility);
