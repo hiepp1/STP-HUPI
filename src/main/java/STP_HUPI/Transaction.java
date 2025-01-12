@@ -14,5 +14,4 @@ public class Transaction {
     List<Integer> items;
     List<Integer> utilities;
     int transactionUtility;
-    int timestamp;
 }

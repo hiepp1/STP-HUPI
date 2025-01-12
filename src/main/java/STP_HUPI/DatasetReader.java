@@ -35,7 +35,7 @@ public class DatasetReader {
             List<Integer> utilities = parseIntegerList(parts[2]);
 //            int timestamp = Integer.parseInt(parts[3].trim());
 
-            return new Transaction(transactionID, items, utilities, transactionUtility, 0);
+            return new Transaction(transactionID, items, utilities, transactionUtility);
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             System.err.println("Error parsing line: " + line);
             return null;

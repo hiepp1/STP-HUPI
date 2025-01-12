@@ -69,7 +69,7 @@ public class ShortTimePeriodMining {
     }
 
     private int calculateMaxPeriod(List<Occurrence> occurrences) {
-        if (occurrences.size() < 2) return Integer.MAX_VALUE;
+        if (occurrences.size() < 2) return 0;
 
 //        int maxPeriod = 0;
 //        for (int i = 0; i < transactionID.size() - 1; i++) {
@@ -90,19 +90,15 @@ public class ShortTimePeriodMining {
     }
 
     private float getTotalExpectedUtility(List<Occurrence> occurrences) {
-        float totalExpectedUtility = 0;
-        for (Occurrence occurrence : occurrences) {
-            totalExpectedUtility += occurrence.getExpectedUtility();
-        }
-        return totalExpectedUtility;
+        return occurrences.stream()
+                .map(Occurrence::getExpectedUtility)
+                .reduce(0f, Float::sum);
     }
 
     private int getTotalUtility(List<Occurrence> occurrences) {
-        int totalUtility = 0;
-        for (Occurrence occurrence : occurrences) {
-            totalUtility += occurrence.getUtility();
-        }
-        return totalUtility;
+        return occurrences.stream()
+                .mapToInt(Occurrence::getUtility)
+                .sum();
     }
 
     public List<Itemset> generateItemsets() {
@@ -117,8 +113,12 @@ public class ShortTimePeriodMining {
                 this.dfs(currentItemset, seenItems, results);
             }
         }
-        results.sort((a, b) -> Float.compare(b.getExpectedUtility(), a.getExpectedUtility()));
-        return results.subList(0, Math.min(this.k, results.size()));
+        return results;
+    }
+
+    private List<Itemset> getTopK(List<Itemset> itemsets) {
+        itemsets.sort((a, b) -> Float.compare(b.getExpectedUtility(), a.getExpectedUtility()));
+        return itemsets.subList(0, Math.min(this.k, itemsets.size()));
     }
 
     private void dfs(List<Integer> currentItemset, Set<Set<Integer>> seenItemsets, List<Itemset> resultItemsets) {
@@ -127,23 +127,27 @@ public class ShortTimePeriodMining {
         seenItemsets.add(sortedItemset);
 
         List<Occurrence> occurrences = this.findOccurrences(currentItemset);
+        if (occurrences.size() == 1) {
+            return;
+        }
+
         float totalExpectedUtility = this.getTotalExpectedUtility(occurrences);
         int maxPeriod = this.calculateMaxPeriod(occurrences);
 
         // Prune
-        if (maxPeriod > this.maxPer || totalExpectedUtility < this.minUtil) {
-            System.out.println("Prune itemset: " + currentItemset);
+        if ((maxPeriod >= 0 && maxPeriod > this.maxPer) || totalExpectedUtility < this.minUtil) {
+//            System.out.println("Prune itemset: " + currentItemset);
             return;
         }
 
-        if (totalExpectedUtility >= this.minUtil) {
+//        if (totalExpectedUtility >= this.minUtil) {
             int totalUtility = this.getTotalUtility(occurrences);
             Itemset itemset = new Itemset(new ArrayList<>(currentItemset), totalUtility, totalExpectedUtility, maxPeriod);
 //            System.out.println("-----------");
 //            System.out.println(itemset);
 //            System.out.println("-----------");
             resultItemsets.add(itemset);
-        }
+//        }
 
         for (Transaction transaction : transactions) {
             List<Integer> items = transaction.getItems();
@@ -161,7 +165,10 @@ public class ShortTimePeriodMining {
         System.out.println("Database Utility: " + this.calculateDatabaseUtility());
         System.out.println("Minimum Expected Utility: " + this.minUtil);
         List<Itemset> results = this.generateItemsets();
-        for (Itemset itemset : results) {
+
+        System.out.println("Top " + this.k + " Itemsets: ");
+        List<Itemset> topK = this.getTopK(results);
+        for (Itemset itemset : topK) {
             System.out.println(itemset);
         }
     }
