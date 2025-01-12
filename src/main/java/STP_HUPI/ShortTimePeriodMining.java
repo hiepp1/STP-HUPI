@@ -223,7 +223,7 @@ public class ShortTimePeriodMining {
             float newMinUtil = this.topKItemsets.peek().getExpectedUtility();
             if (newMinUtil > this.minExpectedUtility) {
                 this.minExpectedUtility = newMinUtil;
-                System.out.println("Raising minUtil: " + minExpectedUtility);
+//                System.out.println("Raising minUtil: " + minExpectedUtility);
             }
         }
     }
@@ -251,7 +251,7 @@ public class ShortTimePeriodMining {
             if (totalExpectedUtility >= this.minExpectedUtility) {
                 int totalUtility = getTotalUtility(occurrences);
                 Itemset itemset = new Itemset(new ArrayList<>(currentItemset), totalUtility, totalExpectedUtility, maxPeriod);
-                System.out.println(itemset);
+//                System.out.println(itemset);
 
                 // Update top-k itemsets
                 if (this.topKItemsets.size() < k) {
@@ -262,7 +262,7 @@ public class ShortTimePeriodMining {
                 }
                 updateMinExpectedUtility();
             }
-            System.out.println("Pruned " + currentItemset);
+//            System.out.println("Pruned " + currentItemset);
         }
 
         // Generate extensions
