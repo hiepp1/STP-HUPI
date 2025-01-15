@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -16,16 +17,20 @@ public class ShortTimePeriodMining {
 //    private float minUtil;
     private float minExpectedUtility; // Minimum expected utility threshold
     private PriorityQueue<Itemset> topKItemsets;
-    private Map<Integer, Float> TWEU; // Transaction-Weighted Expected Utility map
+    private Map<Integer, Float> tweu; // Transaction-Weighted Expected Utility map
+    private Map<Integer, Float> posUtility;
+    private Map<Integer, Float> negUtility;
 
 
-    public ShortTimePeriodMining(List<Transaction> transactions, int maxPer, float minExpectedUtility, int k) {
-        this.transactions = transactions;
-        this.k = k;
-        this.minExpectedUtility = this.calculateDatabaseUtility() * minExpectedUtility; // Initially very low
+    public ShortTimePeriodMining(List<Transaction> transactions, int maxPer, float minUtilityThreshold, int k) {
+        this.transactions = new ArrayList<>(transactions); // Create defensive copy
         this.maxPer = maxPer;
+        this.k = k;
+        this.minExpectedUtility = calculateDatabaseUtility() * minUtilityThreshold;
         this.topKItemsets = new PriorityQueue<>(Comparator.comparing(Itemset::getExpectedUtility));
-        this.TWEU = new HashMap<>();
+        this.tweu = new HashMap<>();
+        this.posUtility = new HashMap<>();
+        this.negUtility = new HashMap<>();
     }
 
     // Code cua may` //
@@ -102,43 +107,44 @@ public class ShortTimePeriodMining {
 //    }
     // ---------------- // ---------------- BAO --------------//--------------//
 
+    // -------------- New Method for Prunning -------------//
+    private boolean isItemsetPromising(List<Integer> itemset) {
+        System.out.println(itemset + " | TWEU = " + calculateItemsetTWEU(itemset) + " , minExpected: " + this.minExpectedUtility);
+        return calculateItemsetTWEU(itemset) >= this.minExpectedUtility;
+    }
 
+    // -------------- New Method for Prunning -------------//
 
     // Calculate total utility of the dataset
     private int calculateDatabaseUtility() {
-        return this.transactions.stream()
-                .map(Transaction::getTransactionUtility)
-                .reduce(0, Integer::sum);
+        return transactions.stream()
+                .mapToInt(Transaction::getTransactionUtility)
+                .sum();
     }
 
     // Calculate the utility of an itemset in a transaction
     private int calculateUtility(Transaction transaction, List<Integer> itemset) {
-        int utility = 0;
-        for (Integer item : itemset) {
-            int index = transaction.getItems().indexOf(item);
-            if (index != -1) {
-                utility += transaction.getUtilities().get(index);
-            }
-        }
-        return utility;
+        return itemset.stream()
+                .mapToInt(item -> {
+                    int index = transaction.getItems().indexOf(item);
+                    return index != -1 ? transaction.getUtilities().get(index) : 0;
+                })
+                .sum();
     }
 
-
-
     private int calculateMaxPeriod(List<Occurrence> occurrences) {
-        if (occurrences.size() < 2) return Integer.MAX_VALUE;
+        if (occurrences.size() < 2) return 0;
 
-        List<Integer> indices = new ArrayList<>();
-        for (Occurrence occurrence : occurrences) {
-            indices.add(occurrence.getTransactionID());
-        }
-        Collections.sort(indices); // Ensure indices are sorted
+        List<Integer> indices = occurrences.stream()
+                .map(Occurrence::getTransactionID)
+                .sorted()
+                .collect(Collectors.toList());
 
-        int maxPeriod = Integer.MIN_VALUE;
-        for (int i = 1; i < indices.size(); i++) {
-            maxPeriod = Math.max(maxPeriod, indices.get(i) - indices.get(i - 1));
-        }
-        return maxPeriod;
+        return Collections.max(
+                indices.subList(1, indices.size()).stream()
+                        .map(current -> current - indices.get(indices.indexOf(current) - 1))
+                        .collect(Collectors.toList())
+        );
     }
 
     private float getTotalExpectedUtility(List<Occurrence> occurrences) {
@@ -162,163 +168,311 @@ public class ShortTimePeriodMining {
         float upperBound = 0;
         for (Transaction transaction : transactions) {
             if (transaction.getItems().containsAll(itemset)) {
-                upperBound += transaction.getTransactionUtility();
+                // Only include positive contributions
+                upperBound += Math.max(transaction.getTransactionUtility(), 0);
             }
         }
         return upperBound;
     }
 
-    private void computeTWEU() {
+
+    // ---------------------------- Pruned Strategies ---------------------------//
+    private void filterLowUtilityItems() {
+        float threshold = this.minExpectedUtility;
+        this.transactions.removeIf(transaction -> {
+            transaction.getItems().removeIf(item -> this.tweu.getOrDefault(item, 0f) < threshold);
+            return transaction.getItems().isEmpty();
+        });
+    }
+
+    private void mergeSimilarTransactions() {
+        Map<Set<Integer>, Transaction> mergedTransactions = new HashMap<>();
+
+        transactions.forEach(transaction -> {
+            Set<Integer> itemSet = new HashSet<>(transaction.getItems());
+            mergedTransactions.merge(itemSet,
+                    new Transaction(transaction),
+                    (existing, newTrans) -> {
+                        existing.setTransactionUtility(
+                                existing.getTransactionUtility() + newTrans.getTransactionUtility()
+                        );
+                        return existing;
+                    }
+            );
+        });
+
+
+        transactions = new ArrayList<>(mergedTransactions.values());
+    }
+
+    // ---------------------------- New Method for PSU --------------------------- //
+    private final Map<String, Float> psuCache = new HashMap<>();
+
+    private float calculatePSU(List<Integer> prefix, int extensionItem) {
+        String key = prefix + "-" + extensionItem;
+        if (psuCache.containsKey(key)) {
+            return psuCache.get(key);
+        }
+
+        float psu = 0;
         for (Transaction transaction : transactions) {
-            for (Integer item : transaction.getItems()) {
-                float transactionUtility = transaction.getTransactionUtility();
-                this.TWEU.put(item, this.TWEU.getOrDefault(item, 0f) + transactionUtility);
+            if (transaction.getItems().containsAll(prefix) && transaction.getItems().contains(extensionItem)) {
+                int prefixUtility = calculateUtility(transaction, prefix);
+                int extensionUtility = calculateUtility(transaction, List.of(extensionItem));
+                int remainingUtility = transaction.getItems().stream()
+                        .filter(item -> !prefix.contains(item) && item != extensionItem)
+                        .mapToInt(item -> transaction.getUtilities().get(transaction.getItems().indexOf(item)))
+                        .sum();
+                psu += prefixUtility + extensionUtility + remainingUtility;
             }
         }
+
+        psuCache.put(key, psu); // Cache result
+        return psu;
+    }
+
+    // ---------------------------- Pruned Strategies ---------------------------//
+
+    private void computeTWEU() {
+        // Reset maps before computation
+        tweu.clear();
+        posUtility.clear();
+        negUtility.clear();
+
+        for (Transaction transaction : transactions) {
+            // Calculate actual transaction utility based on the present items only
+            float transactionUtility = 0;
+
+            for (int i = 0; i < transaction.getItems().size(); i++) {
+                int item = transaction.getItems().get(i);
+                float utility = transaction.getUtilities().get(i);
+
+                // Add to positive or negative utility maps
+                if (utility >= 0) {
+                    posUtility.merge(item, utility, Float::sum);
+                } else {
+                    negUtility.merge(item, utility, Float::sum);
+                }
+                // Add to transaction utility only for this item
+                transactionUtility += utility;
+            }
+            // Now update TWEU for each item with the correct transaction utility
+            for (int item : transaction.getItems()) {
+                tweu.merge(item, transactionUtility, Float::sum);
+            }
+        }
+    }
+
+    private float calculateItemsetTWEU(List<Integer> itemset) {
+        float itemsetTWEU = Float.MAX_VALUE;
+
+        // Find minimum TWEU among all items in the itemset
+        for (Integer item : itemset) {
+            float itemTWEU = tweu.getOrDefault(item, 0f);
+            itemsetTWEU = Math.min(itemsetTWEU, itemTWEU);
+        }
+        System.out.println(itemset + " TWEU: " + itemsetTWEU);
+        return itemsetTWEU;
     }
 
     private List<Occurrence> findOccurrences(List<Integer> itemset) {
-        List<Occurrence> occurrences = new ArrayList<>();
-        for (Transaction transaction : transactions) {
-            if (transaction.getItems().containsAll(itemset)) {
-                int utility = calculateUtility(transaction, itemset);
-                float probability = (float) utility / transaction.getTransactionUtility();
-                float expectedUtility = utility * probability;
-                occurrences.add(new Occurrence(transaction.getId(), probability, utility, expectedUtility));
-            }
-        }
-        return occurrences;
+        return transactions.stream()
+                .filter(transaction -> transaction.getItems().containsAll(itemset))
+                .map(transaction -> {
+                    int utility = calculateUtility(transaction, itemset);
+                    float positiveUtility = Math.max(utility, 0);
+                    float probability = positiveUtility > 0 ?
+                            positiveUtility / transaction.getTransactionUtility() : 0;
+                    float expectedUtility = utility * probability;
+
+                    return new Occurrence(transaction.getId(), probability,
+                            utility, expectedUtility);
+                })
+                .collect(Collectors.toList());
     }
 
     public List<Itemset> generateItemsets() {
-        List<Itemset> results = new ArrayList<>();
         Set<Set<Integer>> seenItemsets = new HashSet<>();
 
-        // Compute TWEU before starting
-        computeTWEU();
-
-        // Get all items from all transactions
-        Set<Integer> uniqueItems = new TreeSet<>();
-        for (Transaction transaction : transactions) {
-            uniqueItems.addAll(transaction.getItems());
-        }
-
-        // Sort items by TWEU in descending order
-        List<Integer> sortedItems = new ArrayList<>(uniqueItems);
-        sortedItems.sort((a, b) -> Float.compare(TWEU.getOrDefault(b, 0f), TWEU.getOrDefault(a, 0f)));
+        // Get and sort unique items by TWEU
+        List<Integer> sortedItems = transactions.stream()
+                .flatMap(t -> t.getItems().stream())
+                .distinct()
+                .sorted((a, b) -> Float.compare(tweu.getOrDefault(b, 0f),
+                        tweu.getOrDefault(a, 0f)))
+                .collect(Collectors.toList());
 
         // Process each item as starting point
         for (Integer item : sortedItems) {
-            List<Integer> currentItemset = new ArrayList<>();
-            currentItemset.add(item);
-            dfs(currentItemset, seenItemsets);
+            if (tweu.getOrDefault(item, 0f) >= minExpectedUtility) {
+                List<Integer> currentItemset = new ArrayList<>();
+                currentItemset.add(item);
+                dfs(currentItemset, seenItemsets);
+            }
         }
 
+        // Return sorted results
+        List<Itemset> results = new ArrayList<>(topKItemsets);
         results.sort(Comparator.comparing(Itemset::getExpectedUtility).reversed());
         return results;
     }
 
     private void updateMinExpectedUtility() {
-        if (this.topKItemsets.size() == k) {
-            float newMinUtil = this.topKItemsets.peek().getExpectedUtility();
-            if (newMinUtil > this.minExpectedUtility) {
-                this.minExpectedUtility = newMinUtil;
-//                System.out.println("Raising minUtil: " + minExpectedUtility);
+        if (topKItemsets.size() == k) {
+            float newMinUtil = topKItemsets.peek().getExpectedUtility();
+            if (newMinUtil > minExpectedUtility) {
+                minExpectedUtility = newMinUtil;
+                System.out.println("Raising minUtil: " + this.minExpectedUtility);
             }
         }
     }
 
+//    private void dfs(List<Integer> currentItemset, Set<Set<Integer>> seenItemsets) {
+//        Set<Integer> itemsetKey = new HashSet<>(currentItemset);
+//        if (seenItemsets.contains(itemsetKey)) {
+//            return;
+//        }
+//        seenItemsets.add(itemsetKey);
+//
+//        // Calculate expected utility upper bound
+//        float expectedUtilityBound = calculateExpectedUtilityUpperBound(currentItemset);
+//        if (expectedUtilityBound < this.minExpectedUtility) {
+//            System.out.println("Pruned: " + currentItemset);
+//            return; // Prune branch
+//        }
+//
+//        // Find occurrences and calculate utilities
+//        List<Occurrence> occurrences = findOccurrences(currentItemset);
+//        if (!occurrences.isEmpty()) {
+//            float totalExpectedUtility = getTotalExpectedUtility(occurrences);
+//            int maxPeriod = calculateMaxPeriod(occurrences);
+//
+//            // Prune based on utility and period
+//            if (totalExpectedUtility >= this.minExpectedUtility || maxPeriod <= this.maxPer) {
+//                int totalUtility = getTotalUtility(occurrences);
+//                Itemset itemset = new Itemset(new ArrayList<>(currentItemset), totalUtility, totalExpectedUtility, maxPeriod);
+//                System.out.println(itemset);
+//
+//                if (this.topKItemsets.size() < k) {
+//                    this.topKItemsets.offer(itemset);
+//                } else if (itemset.getExpectedUtility() > this.topKItemsets.peek().getExpectedUtility()) {
+//                    this.topKItemsets.poll();
+//                    this.topKItemsets.offer(itemset);
+//                }
+//                updateMinExpectedUtility();
+//            }
+//        }
+//
+//        // Generate extensions
+//        Set<Integer> extensionItems = new TreeSet<>();
+//        for (Transaction transaction : transactions) {
+//            if (transaction.getItems().containsAll(currentItemset)) {
+//                for (Integer item : transaction.getItems()) {
+//                    if (!currentItemset.contains(item) && item > currentItemset.get(currentItemset.size() - 1)) {
+//                        extensionItems.add(item);
+//                    }
+//                }
+//            }
+//        }
+//        // Filter extensions based on TWEU
+//        extensionItems.removeIf(item -> TWEU.getOrDefault(item, 0f) < this.minExpectedUtility);
+//
+//        // Explore extensions recursively
+//        for (Integer item : extensionItems) {
+//            List<Integer> newItemset = new ArrayList<>(currentItemset);
+//            newItemset.add(item);
+//
+//            float itemsetTWEU = 0f;
+//            for (Integer i : newItemset) {
+//                itemsetTWEU += TWEU.getOrDefault(i, 0f);
+//            }
+//
+//            if (itemsetTWEU >= this.minExpectedUtility) {
+//                dfs(newItemset, seenItemsets);
+//            }
+//        }
+//    }
+
     private void dfs(List<Integer> currentItemset, Set<Set<Integer>> seenItemsets) {
+        // Set a maximum depth to avoid excessively deep chains
+
         Set<Integer> itemsetKey = new HashSet<>(currentItemset);
-        if (seenItemsets.contains(itemsetKey)) {
-            return;
-        }
-        seenItemsets.add(itemsetKey);
+        if (!seenItemsets.add(itemsetKey)) return;
 
-        // Calculate expected utility upper bound
-        float expectedUtilityBound = calculateExpectedUtilityUpperBound(currentItemset);
-        if (expectedUtilityBound < this.minExpectedUtility) {
-            return; // Prune branch
-        }
+        // Check if current itemset is promising
+//        if (!isItemsetPromising(currentItemset)) {
+//            System.out.println("Pruned " + currentItemset);
+//            return;
+//        }
 
-        // Find occurrences and calculate utilities
         List<Occurrence> occurrences = findOccurrences(currentItemset);
         if (!occurrences.isEmpty()) {
-            float totalExpectedUtility = getTotalExpectedUtility(occurrences);
-            int maxPeriod = calculateMaxPeriod(occurrences);
-
-            // Prune based on utility and period
-            if (totalExpectedUtility >= this.minExpectedUtility) {
-                int totalUtility = getTotalUtility(occurrences);
-                Itemset itemset = new Itemset(new ArrayList<>(currentItemset), totalUtility, totalExpectedUtility, maxPeriod);
-//                System.out.println(itemset);
-
-                // Update top-k itemsets
-                if (this.topKItemsets.size() < k) {
-                    this.topKItemsets.offer(itemset);
-                } else if (itemset.getExpectedUtility() > this.topKItemsets.peek().getExpectedUtility()) {
-                    this.topKItemsets.poll();
-                    this.topKItemsets.offer(itemset);
-                }
-                updateMinExpectedUtility();
-            }
-//            System.out.println("Pruned " + currentItemset);
+            processCurrentItemset(currentItemset, occurrences);
         }
 
-        // Generate extensions
-        Set<Integer> extensionItems = new TreeSet<>();
-        for (Transaction transaction : transactions) {
-            if (transaction.getItems().containsAll(currentItemset)) {
-                for (Integer item : transaction.getItems()) {
-                    if (!currentItemset.contains(item) && item > currentItemset.get(currentItemset.size() - 1)) {
-                        extensionItems.add(item);
-                    }
-                }
-            }
-        }
+        // Generate extensions and prune using PSU
+        Set<Integer> extensionItems = this.transactions.stream()
+                .filter(t -> t.getItems().containsAll(currentItemset))
+                .flatMap(t -> t.getItems().stream())
+                .filter(item -> !currentItemset.contains(item) &&
+                        item > currentItemset.get(currentItemset.size() - 1))
+                .filter(item -> {
+                    float psu = calculatePSU(currentItemset, item);
+                    return psu >= this.minExpectedUtility; // Prune unpromising items
+                })
+                .collect(Collectors.toSet());
 
-        // Explore extensions recursively
         for (Integer item : extensionItems) {
             List<Integer> newItemset = new ArrayList<>(currentItemset);
             newItemset.add(item);
+            dfs(newItemset, seenItemsets); // Pass depth
+        }
+    }
 
-            float itemsetTWEU = 0f;
-            for (Integer i : newItemset) {
-                itemsetTWEU += TWEU.getOrDefault(i, 0f);
-            }
+    private void processCurrentItemset(List<Integer> currentItemset, List<Occurrence> occurrences) {
+        float totalExpectedUtility = occurrences.stream()
+                .map(Occurrence::getExpectedUtility)
+                .reduce(0f, Float::sum);
 
-            if (itemsetTWEU >= this.minExpectedUtility) {
-                dfs(newItemset, seenItemsets);
+        int maxPeriod = calculateMaxPeriod(occurrences);
+
+        if (totalExpectedUtility >= minExpectedUtility || maxPeriod <= maxPer) {
+            int totalUtility = occurrences.stream()
+                    .mapToInt(Occurrence::getUtility)
+                    .sum();
+
+            Itemset itemset = new Itemset(new ArrayList<>(currentItemset),
+                    totalUtility, totalExpectedUtility, maxPeriod);
+            System.out.println(itemset);
+            if (topKItemsets.size() < k) {
+                topKItemsets.offer(itemset);
+            } else if (itemset.getExpectedUtility() > topKItemsets.peek().getExpectedUtility()) {
+                topKItemsets.poll();
+                topKItemsets.offer(itemset);
             }
+            updateMinExpectedUtility();
         }
     }
     // ------------------------------ BONUS ---------------------------------------//
 
     public void run() {
-//        System.out.println("Database Utility: " + this.calculateDatabaseUtility());
-//        System.out.println("Minimum Expected Utility: " + this.minExpectedUtility);
-//        List<Itemset> results = this.generateItemsets();
-//        System.out.println("Final top-k list:");
-//        for (Itemset itemset : results) {
-//            System.out.println(itemset);
-//        }
         System.out.println("Database Utility: " + this.calculateDatabaseUtility());
         System.out.println("Minimum Expected Utility: " + this.minExpectedUtility);
 
         long startTime = System.nanoTime();
-        this.generateItemsets();
-        long endTime = System.nanoTime();
 
-        long duration = endTime - startTime;
-        double seconds = (double) duration / 1_000_000_000.0; //Correct
-        System.out.println("Execution time: " + seconds);
+        // Initialize and optimize
+        computeTWEU();
+        filterLowUtilityItems();
+        mergeSimilarTransactions();
 
-        System.out.println("Final top-k list:");
-        List<Itemset> finalTopK = new ArrayList<>(this.topKItemsets);
-        finalTopK.sort((a, b) -> Float.compare(b.getExpectedUtility(), a.getExpectedUtility()));
+        // Generate itemsets
+        List<Itemset> results = generateItemsets();
 
-        for (Itemset itemset : finalTopK) {
-            System.out.println(itemset);
-        }
+        // Print results
+        double executionTime = (System.nanoTime() - startTime) / 1_000_000_000.0;
+        System.out.printf("Execution time: %.2f seconds%n", executionTime);
+        System.out.println("Final top-k itemsets:");
+        results.forEach(System.out::println);
     }
 }
