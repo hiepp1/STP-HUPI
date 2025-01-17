@@ -6,7 +6,7 @@ import java.util.*;
 public class Main {
     public static void main(String[] args) {
         String filepath = "src/main/java/dataset/fruithut_utility_timestamps.txt";
-        String filepath2 = "src/main/java/dataset/test.txt";
+        String filepath2 = "src/main/java/dataset/test1.txt";
         String filepath3 = "src/main/java/dataset/BMS_utility.txt";
 
         try {
@@ -20,9 +20,9 @@ public class Main {
 //                i += 1;
 //            }
 
-            List<Transaction> transactions = DatasetReader.readDataset(filepath2);
+            List<Transaction> transactions = DatasetReader.readDataset(filepath3);
             System.out.println("Transactions loaded: " + transactions.size());
-            ShortTimePeriodMining stp = new ShortTimePeriodMining(transactions, 50, 0.001f, 5);
+            ShortTimePeriodMining stp = new ShortTimePeriodMining(transactions, 500, 0.001f, 5);
             stp.run();
 
         } catch (IOException e) {
