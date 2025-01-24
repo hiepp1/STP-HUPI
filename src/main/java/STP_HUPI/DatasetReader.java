@@ -6,7 +6,28 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public class DatasetReader {
-//    public static List<List<Transaction>> readDataset(String filepath) throws IOException {
+    public static List<List<Transaction>> readDataset(String filepath) throws IOException {
+        List<Transaction> transactions = new ArrayList<>();
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filepath))) {
+            String line;
+            int transactionID = 1;
+
+            while ((line = bufferedReader.readLine()) != null) {
+                Transaction transaction = parseTransaction(line, transactionID++);
+                if (transaction != null) {
+                    transactions.add(transaction);
+                    System.out.println(transaction);
+                }
+            }
+        }
+        System.out.println("\n--------------------------- Starting to transform transactions to weekly transactions/short time transactions ---------------------------\n");
+        List<List<Transaction>> weeklyTransactions = transformToWeeklyTransactions(transactions);
+        System.out.println("Transactions loaded: " + weeklyTransactions.stream().mapToInt(List::size).sum());
+        System.out.println("Short Time Transactions loaded: " + weeklyTransactions.size());
+        return weeklyTransactions;
+    }
+
+//    public static List<Transaction> readDataset(String filepath) throws IOException {
 //        List<Transaction> transactions = new ArrayList<>();
 //        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filepath))) {
 //            String line;
@@ -19,42 +40,21 @@ public class DatasetReader {
 //                }
 //            }
 //        }
-//        System.out.println("\n--------------------------- Starting to transform transactions to weekly transactions/short time transactions ---------------------------\n");
-//        List<List<Transaction>> weeklyTransactions = transformToWeeklyTransactions(transactions);
-//        System.out.println("Transactions loaded: " + weeklyTransactions.stream().mapToInt(List::size).sum());
-//        System.out.println("Short Time Transactions loaded: " + weeklyTransactions.size());
-//        return weeklyTransactions;
+//        return transactions;
 //    }
-
-    public static List<Transaction> readDataset(String filepath) throws IOException {
-        List<Transaction> transactions = new ArrayList<>();
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filepath))) {
-            String line;
-            int transactionID = 1;
-
-            while ((line = bufferedReader.readLine()) != null) {
-                Transaction transaction = parseTransaction(line, transactionID++);
-                if (transaction != null) {
-                    transactions.add(transaction);
-                }
-            }
-        }
-        return transactions;
-    }
 
     private static Transaction parseTransaction(String line, int transactionID) {
         try {
             String[] parts = line.split(":");
-            if (parts.length != 3) {
+            if (parts.length != 4) {
                 return null;
             }
 
             List<Integer> items = parseIntegerList(parts[0]);
             int transactionUtility = Integer.parseInt(parts[1].trim());
             List<Integer> utilities = parseIntegerList(parts[2]);
-//            long timestamp = Long.parseLong(parts[3].trim());
-
-            return new Transaction(transactionID, items, utilities, transactionUtility, 0);
+            long timestamp = Long.parseLong(parts[3].trim());
+            return new Transaction(transactionID, items, utilities, transactionUtility, timestamp);
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             System.err.println("Error parsing line: " + line);
             return null;
