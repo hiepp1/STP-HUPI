@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ShortTimePeriodMining {
+public class Algorithm {
     private List<Transaction> transactions;
     private int maxPer;
     private int k;
@@ -22,7 +22,7 @@ public class ShortTimePeriodMining {
     private Map<Integer, Float> negUtility;
 
 
-    public ShortTimePeriodMining(List<Transaction> transactions, int maxPer, float minUtilityThreshold, int k) {
+    public Algorithm(List<Transaction> transactions, int maxPer, float minUtilityThreshold, int k) {
         this.transactions = new ArrayList<>(transactions); // Create defensive copy
         this.maxPer = maxPer;
         this.k = k;
@@ -185,27 +185,6 @@ public class ShortTimePeriodMining {
             return transaction.getItems().isEmpty();
         });
     }
-
-    private void mergeSimilarTransactions() {
-        Map<Set<Integer>, Transaction> mergedTransactions = new HashMap<>();
-
-        transactions.forEach(transaction -> {
-            Set<Integer> itemSet = new HashSet<>(transaction.getItems());
-            mergedTransactions.merge(itemSet,
-                    new Transaction(transaction),
-                    (existing, newTrans) -> {
-                        existing.setTransactionUtility(
-                                existing.getTransactionUtility() + newTrans.getTransactionUtility()
-                        );
-                        return existing;
-                    }
-            );
-        });
-
-
-        transactions = new ArrayList<>(mergedTransactions.values());
-    }
-
     // ---------------------------- New Method for PSU --------------------------- //
     private final Map<String, Float> psuCache = new HashMap<>();
 
@@ -319,12 +298,12 @@ public class ShortTimePeriodMining {
     }
 
     private void updateMinExpectedUtility() {
-        if (topKItemsets.size() == k) {
-            assert topKItemsets.peek() != null;
+        if (this.topKItemsets.size() == k) {
+            assert this.topKItemsets.peek() != null;
 
-            float newMinUtil = topKItemsets.peek().getExpectedUtility();
-            if (newMinUtil > minExpectedUtility) {
-                minExpectedUtility = newMinUtil;
+            float newMinUtil = this.topKItemsets.peek().getExpectedUtility();
+            if (newMinUtil > this.minExpectedUtility) {
+                this.minExpectedUtility = newMinUtil;
                 System.out.println("Raising minUtil: " + this.minExpectedUtility);
             }
         }
@@ -397,8 +376,6 @@ public class ShortTimePeriodMining {
 //    }
 
     private void dfs(List<Integer> currentItemset, Set<Set<Integer>> seenItemsets) {
-        // Set a maximum depth to avoid excessively deep chains
-
         Set<Integer> itemsetKey = new HashSet<>(currentItemset);
         if (!seenItemsets.add(itemsetKey)) return;
 
@@ -429,7 +406,11 @@ public class ShortTimePeriodMining {
                 .filter(item -> {
                     // Prune extensions by PSU and maxPeriod
                     float psu = calculatePSU(currentItemset, item);
-                    if (psu < this.minExpectedUtility) return false;
+                    System.out.println(currentItemset + " PSU: " + psu);
+                    if (psu < this.minExpectedUtility) {
+                        System.out.println("Pruned by PSU: " + currentItemset);
+                        return false;
+                    }
 
                     List<Integer> extendedItemset = new ArrayList<>(currentItemset);
                     extendedItemset.add(item);
@@ -443,12 +424,16 @@ public class ShortTimePeriodMining {
         for (Integer item : extensionItems) {
             List<Integer> newItemset = new ArrayList<>(currentItemset);
             newItemset.add(item);
-            this.dfs(newItemset, seenItemsets); // Pass depth
+            this.dfs(newItemset, seenItemsets);
         }
     }
 
     private void processCurrentItemset(List<Integer> currentItemset, List<Occurrence> occurrences) {
         // Calculate the max period first
+        if (currentItemset.equals(List.of(11143))) {
+            System.out.println("Matching Itemset Found: " + currentItemset);
+        }
+
         int maxPeriod = this.calculateMaxPeriod(occurrences);
 
         // If the max period exceeds the threshold, prune the itemset
@@ -460,27 +445,30 @@ public class ShortTimePeriodMining {
         // Proceed with utility calculations if periodicity is satisfied
         float totalExpectedUtility = this.getTotalExpectedUtility(occurrences);
 
-        if (totalExpectedUtility >= minExpectedUtility) {
+        if (totalExpectedUtility >= this.minExpectedUtility) {
             int totalUtility = this.getTotalUtility(occurrences);
 
             Itemset itemset = new Itemset(
                     new ArrayList<>(currentItemset), totalUtility,
                                     totalExpectedUtility, maxPeriod);
 
-            System.out.println(itemset);
+//            System.out.println(itemset);
 
-            if (topKItemsets.size() < k) {
-                topKItemsets.offer(itemset);
+            if (this.topKItemsets.size() < k) {
+                System.out.println("Added: " + itemset);
+                this.topKItemsets.offer(itemset);
             } else {
-                assert topKItemsets.peek() != null;
-                if (itemset.getExpectedUtility() > topKItemsets.peek().getExpectedUtility()) {
-                    topKItemsets.poll();
-                    topKItemsets.offer(itemset);
+                assert this.topKItemsets.peek() != null;
+                if (itemset.getExpectedUtility() > this.topKItemsets.peek().getExpectedUtility()) {
+                    System.out.println("Remove: " + this.topKItemsets.peek());
+                    this.topKItemsets.poll();
+                    this.topKItemsets.offer(itemset);
+                    System.out.println("Added: " + itemset);
                 }
             }
             updateMinExpectedUtility();
         } else {
-            System.out.println("Pruned due to low utility: " + currentItemset);
+//            System.out.println("Skip itemset: " + currentItemset + " " + totalExpectedUtility);
         }
     }
     // ------------------------------ BONUS ---------------------------------------//
@@ -503,6 +491,10 @@ public class ShortTimePeriodMining {
         double executionTime = (System.nanoTime() - startTime) / 1_000_000_000.0;
         System.out.printf("Execution time: %.2f seconds%n", executionTime);
         System.out.println("Final top-" + this.k + " itemsets: ");
-        results.forEach(System.out::println);
+        if (results.isEmpty()) {
+            System.out.println("No itemsets satisfy your condition");
+        } else {
+            results.forEach(System.out::println);
+        }
     }
 }
