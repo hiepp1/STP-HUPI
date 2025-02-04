@@ -25,9 +25,8 @@ public class Main {
             List<Transaction> transactions = DatasetReader.readDataset(filepath3);
             System.out.println("Transactions loaded: " + transactions.size());
 
-            Algorithm stp = new Algorithm(transactions, Integer.MAX_VALUE);
-            stp.evaluateTopKPerformance(extractDatasetTitle(filepath3));
-//            stp.run();
+            Algorithm algorithm = new Algorithm(transactions, Integer.MAX_VALUE);
+            algorithm.evaluateTopKPerformance(extractDatasetTitle(filepath3));
 
         } catch (IOException e) {
             System.err.println("Error reading the dataset: " + e.getMessage());
