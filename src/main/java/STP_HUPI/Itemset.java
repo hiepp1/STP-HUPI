@@ -4,12 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Itemset implements Comparable<Itemset>{
+public class Itemset implements Comparable<Itemset> {
     List<Integer> items;
     int utility;
     float expectedUtility;

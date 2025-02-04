@@ -3,7 +3,6 @@ package STP_HUPI;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,5 +22,4 @@ public class Transaction {
         this.utilities = new ArrayList<>(other.getUtilities());
         this.transactionUtility = other.getTransactionUtility();
     }
-
 }
