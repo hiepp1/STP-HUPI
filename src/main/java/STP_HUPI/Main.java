@@ -7,10 +7,10 @@ import java.util.*;
 public class Main {
     public static void main(String[] args) {
         String filepath = "src/main/java/dataset/foodmart_utility_timestamps.txt";
-        String filepath2 = "src/main/java/dataset/test2.txt";
-        String filepath3 = "src/main/java/dataset/accidents_negative.txt";
+        String filepath2 = "src/main/java/dataset/test1.txt";
+        String filepath3 = "src/main/java/dataset/pumsp_negative.txt";
 
-        String filepath4 = "src/main/java/done_dataset/mushroom_negative.txt";
+        String filepath4 = "src/main/java/done_dataset/retail_negative.txt";
 
         try {
 //            List<List<Transaction>> transactions = DatasetReader.readDataset(filepath2);
@@ -22,10 +22,10 @@ public class Main {
 //                stp.run();
 //                i += 1;
 
-            List<Transaction> transactions = DatasetReader.readDataset(filepath3);
+            List<Transaction> transactions = DatasetReader.readDataset(filepath4);
             System.out.println("Transactions loaded: " + transactions.size());
 
-            Algorithm stp = new Algorithm(transactions, Integer.MAX_VALUE);
+            Algorithm stp = new Algorithm(transactions, Integer.MAX_VALUE, 10);
             stp.evaluateTopKPerformance(extractDatasetTitle(filepath3));
 //            stp.run();
 

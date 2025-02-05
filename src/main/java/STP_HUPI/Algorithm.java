@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import org.knowm.xchart.*;
 
 @Data
-@NoArgsConstructor
+@NoArgsConstructor(force = true)
 @AllArgsConstructor
 public class Algorithm {
     private List<Transaction> transactions;
@@ -20,8 +20,10 @@ public class Algorithm {
     private Map<Integer, Float> posUtility;
     private Map<Integer, Float> negUtility;
     private Map<String, Float> psuCache = new HashMap<>();
+    private final List<Transaction> originalTransactions;
 
-    public Algorithm(List<Transaction> transactions, int maxPer) {
+    public Algorithm(List<Transaction> transactions, int maxPer, int k) {
+        this.originalTransactions = new ArrayList<>(transactions);
         this.transactions = new ArrayList<>(transactions);
         this.maxPer = maxPer;
         this.k = k;
@@ -36,19 +38,20 @@ public class Algorithm {
     private float calculatePRIU() {
         return (float) transactions.stream()
                 .mapToDouble(transaction -> transaction.getItems().stream()
-                        .mapToDouble(item -> posUtility.getOrDefault(item, 0f))  // Only positive utilities
-                        .sum()
-                ).max().orElse(0);
+                        .mapToDouble(item -> posUtility.getOrDefault(item, 0f))
+                        .sum())
+                .max()
+                .orElse(0);
     }
 
     private float calculatePLIU_E() {
         return (float) transactions.stream()
                 .mapToDouble(transaction -> {
                     List<Integer> sortedItems = transaction.getItems().stream()
-                            .sorted(Comparator.comparingDouble(item -> posUtility.getOrDefault(item, 0f))) // Sort by posUtility
+                            .sorted(Comparator.comparingDouble(item -> posUtility.getOrDefault(item, 0f)))
                             .collect(Collectors.toList());
 
-                    return sortedItems.stream().limit(2) // Only take the first 2 most probable items
+                    return sortedItems.stream().limit(2)
                             .mapToDouble(item -> posUtility.getOrDefault(item, 0f))
                             .sum();
                 }).max().orElse(0);
@@ -59,12 +62,11 @@ public class Algorithm {
 
         return (float) topKItemsets.stream()
                 .mapToDouble(Itemset::getExpectedUtility)  // Use probability-based expected utility
-                .min().orElse(0); // Get the smallest expected utility in top-K
+                .min()
+                .orElse(0); // Get the smallest expected utility in top-K
     }
     // ------------------------------------------- PRIU STRATEGIES -----------------------------------//
 
-
-    // Calculate total utility of the dataset
     private int calculateDatabaseUtility() {
         return transactions.stream()
                 .mapToInt(Transaction::getTransactionUtility)
@@ -160,43 +162,6 @@ public class Algorithm {
         psuCache.put(key, maxPSU);
         return maxPSU;
     }
-//    public float calculatePSU(List<Integer> prefix, int extensionItem) {
-//        Set<String> processedPSU = new HashSet<>();
-//        String key = prefix + "-" + extensionItem;
-//
-//        // Avoid duplicate computations
-//        if (processedPSU.contains(key)) {
-//            return 0; // Return 0 to prevent duplicate calculations
-//        }
-//        processedPSU.add(key);
-//
-//        // Compute PSU by summing only positive remaining utilities
-//        float psu = (float) transactions.stream()
-//                .filter(transaction -> transaction.getItems().containsAll(prefix) && transaction.getItems().contains(extensionItem))
-//                .mapToDouble(transaction -> {
-//                    int prefixUtility = calculateUtility(transaction, prefix);
-//                    int extensionUtility = calculateUtility(transaction, List.of(extensionItem));
-//
-//                    // Only sum positive remaining utilities
-//                    int remainingPositiveUtility = transaction.getItems().stream()
-//                            .filter(item -> !prefix.contains(item) && item != extensionItem) // Exclude prefix and extension item
-//                            .mapToInt(item -> {
-//                                int index = transaction.getItems().indexOf(item);
-//                                if (index == -1) return 0; // Skip if item is not found
-//                                int utility = transaction.getUtilities().get(index);
-//                                return Math.max(utility, 0); // Ensure negative values are ignored
-//                            })
-//                            .sum();
-//
-//                    return prefixUtility + extensionUtility + remainingPositiveUtility;
-//                })
-//                .sum();
-//
-//        psuCache.put(key, psu);
-//        return psu;
-//    }
-
-
     // ---------------------------- Pruned Strategies ---------------------------//
 
     private void computeTWEU() {
@@ -245,51 +210,74 @@ public class Algorithm {
     }
 
     public List<Itemset> generateItemsets() {
-        Set<Set<Integer>> seenItemsets = new HashSet<>();
 
         List<Integer> sortedItems = transactions.stream()
                 .flatMap(t -> t.getItems().stream())
                 .distinct()
-                .sorted((a, b) -> Float.compare(tweu.getOrDefault(b, 0f),
-                        tweu.getOrDefault(a, 0f)))
+                .sorted((a, b) -> Float.compare(tweu.getOrDefault(b, 0f), tweu.getOrDefault(a, 0f)))
                 .collect(Collectors.toList());
 
-        // Process each item as starting point
+        RSPHTreeNode root = new RSPHTreeNode(new ArrayList<>(), 0, 0);
+
         for (Integer item : sortedItems) {
             if (tweu.getOrDefault(item, 0f) >= minExpectedUtility) {
                 List<Integer> currentItemset = new ArrayList<>();
                 currentItemset.add(item);
-                this.dfs(currentItemset, seenItemsets);
+                RSPHTreeNode node = new RSPHTreeNode(currentItemset, 0, 0);
+                root.children.put(item, node);
+
+                List<Occurrence> occurrences = findOccurrences(currentItemset);
+                rsphTreeGrowth(node, occurrences);
             }
         }
 
-        // Return sorted results
         List<Itemset> results = new ArrayList<>(topKItemsets);
         results.sort(Comparator.comparing(Itemset::getExpectedUtility).reversed());
         return results;
     }
+
+//    public List<Itemset> generateItemsets() {
+//        Set<Set<Integer>> seenItemsets = new HashSet<>();
+//
+//        List<Integer> sortedItems = transactions.stream()
+//                .flatMap(t -> t.getItems().stream())
+//                .distinct()
+//                .sorted((a, b) -> Float.compare(tweu.getOrDefault(b, 0f),
+//                        tweu.getOrDefault(a, 0f)))
+//                .collect(Collectors.toList());
+//
+//        // Process each item as starting point
+//        for (Integer item : sortedItems) {
+//            if (tweu.getOrDefault(item, 0f) >= minExpectedUtility) {
+//                List<Integer> currentItemset = new ArrayList<>();
+//                currentItemset.add(item);
+//                this.dfs(currentItemset, seenItemsets);
+//            }
+//        }
+//
+//        // Return sorted results
+//        List<Itemset> results = new ArrayList<>(topKItemsets);
+//        results.sort(Comparator.comparing(Itemset::getExpectedUtility).reversed());
+//        return results;
+//    }
 
     private void updateMinExpectedUtility() {
         if (this.topKItemsets.size() >= k) {
             List<Itemset> sortedItemsets = new ArrayList<>(topKItemsets);
             sortedItemsets.sort(Comparator.comparing(Itemset::getExpectedUtility).reversed());
 
-            List<Itemset> validItemsets = sortedItemsets.stream()
-                    .filter(itemset -> itemset.getUtility() >= 0)  // Only consider positive utility
-                    .collect(Collectors.toList());
+            float newMinUtil = sortedItemsets.get(sortedItemsets.size() - 1).getExpectedUtility();
+            float priu = calculatePRIU() * 0.3f;  // Reduce PRIU influence
+            float pliue = calculatePLIU_E() * 0.3f;  // Reduce PLIU_E influence
+            float pliulb = calculatePLIU_LB();  // Keep PLIU_LB as it is
 
-            if (validItemsets.size() < k) {
-                return;  // Skip updating if not enough valid itemsets
-            }
+            // More flexible threshold calculation
+            float dynamicThreshold = Math.max(
+                    newMinUtil * 0.8f,  // Increase the minimum utility factor
+                    Math.min(priu, Math.min(pliue, pliulb))  // Take minimum of all three
+            );
 
-            float newMinUtil = validItemsets.get(validItemsets.size() - 1).getExpectedUtility();
-            float priu = calculatePRIU();
-            float pliue = calculatePLIU_E();
-            float pliulb = calculatePLIU_LB();
-
-            float dynamicThreshold = Math.max(newMinUtil * 0.85f, Math.max(priu, Math.max(pliue, pliulb)));
-
-            if (dynamicThreshold > this.minExpectedUtility) {
+            if (dynamicThreshold > this.minExpectedUtility * 1.1f) {  // 10% increase rule
                 this.minExpectedUtility = dynamicThreshold;
                 System.out.println("Updated minExpectedUtility: " + this.minExpectedUtility);
             }
@@ -297,7 +285,8 @@ public class Algorithm {
     }
 
 
-    private Set<List<Integer>> topKSeen = new HashSet<>();
+
+    private Set<String> topKSeen = new HashSet<String>();
 
     private void dfs(List<Integer> currentItemset, Set<Set<Integer>> seenItemsets) {
         Set<Integer> itemsetKey = new TreeSet<>(currentItemset);
@@ -308,6 +297,7 @@ public class Algorithm {
         if (maxPeriod > this.maxPer) return;
 
         float totalExpectedUtility = getTotalExpectedUtility(occurrences);
+        if (totalExpectedUtility < this.minExpectedUtility) return;
         int totalUtility = getTotalUtility(occurrences);
 
         // Always process itemsets if they are valid
@@ -331,15 +321,66 @@ public class Algorithm {
         updateMinExpectedUtility();
     }
 
+    private List<Integer> getCanonicalOrder(List<Integer> items) {
+        return items.stream()
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    private String getItemsetKey(List<Integer> items) {
+        return getCanonicalOrder(items).toString();
+    }
+
+    private void rsphTreeGrowth(RSPHTreeNode node, List<Occurrence> occurrences) {
+        int maxPeriod = calculateMaxPeriod(occurrences);
+        if (maxPeriod > this.maxPer) return;
+
+        float totalExpectedUtility = getTotalExpectedUtility(occurrences);
+        if (totalExpectedUtility < this.minExpectedUtility) return;
+
+        // Use canonical form for checking and processing
+        String canonicalKey = getItemsetKey(node.itemset);
+        if (!topKSeen.contains(canonicalKey)) {
+            processCurrentItemset(node.itemset, occurrences, false);
+        }
+
+        // Get extension items and maintain proper ordering
+        List<Integer> extensionItems = transactions.stream()
+                .flatMap(t -> t.getItems().stream())
+                .filter(item -> !node.itemset.contains(item) &&
+                        item > node.itemset.stream().max(Integer::compareTo).orElse(-1)) // Only extend with larger items
+                .distinct()
+                .sorted((a, b) -> Float.compare(tweu.getOrDefault(b, 0f), tweu.getOrDefault(a, 0f)))
+                .collect(Collectors.toList());
+
+        for (Integer item : extensionItems) {
+            float psu = calculatePSU(node.itemset, item);
+            if (psu >= this.minExpectedUtility) {
+                List<Integer> newItemset = new ArrayList<>(node.itemset);
+                newItemset.add(item);
+
+                // Check if this itemset combination has been seen
+                String newKey = getItemsetKey(newItemset);
+                if (!topKSeen.contains(newKey)) {
+                    RSPHTreeNode childNode = new RSPHTreeNode(newItemset, totalExpectedUtility, maxPeriod);
+                    node.children.put(item, childNode);
+
+                    List<Occurrence> newOccurrences = findOccurrences(newItemset);
+                    rsphTreeGrowth(childNode, newOccurrences);
+                }
+            }
+        }
+    }
 
     private void processCurrentItemset(List<Integer> currentItemset, List<Occurrence> occurrences, boolean updateMin) {
+        String canonicalKey = getItemsetKey(currentItemset);
+        if (topKSeen.contains(canonicalKey)) {
+            return;
+        }
+
         int maxPeriod = calculateMaxPeriod(occurrences);
         float totalExpectedUtility = getTotalExpectedUtility(occurrences);
         int totalUtility = getTotalUtility(occurrences);
-
-        if (topKSeen.contains(currentItemset)) {
-            return;
-        }
 
         if (totalUtility < 0) {
             return;
@@ -349,59 +390,99 @@ public class Algorithm {
 
         if (this.topKItemsets.size() < k) {
             this.topKItemsets.offer(itemset);
-            topKSeen.add(new ArrayList<>(currentItemset));
+            topKSeen.add(canonicalKey);
         } else {
             Itemset lowestUtilityItemset = this.topKItemsets.peek();
             if (lowestUtilityItemset != null) {
-                if (itemset.getExpectedUtility() > lowestUtilityItemset.getExpectedUtility() * 0.9 &&
-                        itemset.getItems().size() > lowestUtilityItemset.getItems().size()) {
+                if (itemset.getExpectedUtility() > lowestUtilityItemset.getExpectedUtility()) {
                     Itemset removed = this.topKItemsets.poll();
-                    topKSeen.remove(removed.getItems());
+                    topKSeen.remove(getItemsetKey(removed.getItems()));
                     this.topKItemsets.offer(itemset);
-                    topKSeen.add(new ArrayList<>(currentItemset));
-                } else if (itemset.getExpectedUtility() > lowestUtilityItemset.getExpectedUtility()) {
-                    Itemset removed = this.topKItemsets.poll();
-                    topKSeen.remove(removed.getItems());
-                    this.topKItemsets.offer(itemset);
-                    topKSeen.add(new ArrayList<>(currentItemset));
+                    topKSeen.add(canonicalKey);
                 }
             }
         }
-
         if (updateMin) {
             updateMinExpectedUtility();
         }
     }
 
 
+    // ------------------------------ RUN METHOD ---------------------------------------//
+
     public void reset() {
+        // Clear existing collections
         this.topKItemsets.clear();
         this.topKSeen.clear();
         this.tweu.clear();
         this.posUtility.clear();
         this.negUtility.clear();
         this.psuCache.clear();
+
+        // Reinitialize transactions from original data
+        this.transactions = new ArrayList<>(originalTransactions); // Need to add originalTransactions field
+
+        // Recalculate initial threshold
         this.minExpectedUtility = calculateDatabaseUtility() * 0.001f;
+
+        // Recompute utility maps
+        computeTWEU();
     }
 
     public void evaluateTopKPerformance(String datasetTitle) {
-        int[] kValues = {1, 5, 10, 20};
+        int[] kValues = {1, 5, 10, 20};  // Different k values to test
         Map<Integer, Double> runtimeResults = new LinkedHashMap<>();
+
+        float globalMinUtil = calculateDatabaseUtility() * 0.001f;  // Shared minUtil across k-values
+        float minUtilLowerBound = calculateDatabaseUtility() * 0.0001f;
 
         for (int kValue : kValues) {
             this.k = kValue;
-            reset();  // Use the new reset method
-            System.out.println("\nRunning for Top-" + kValue + " itemsets...");
+            boolean foundEnoughCandidates = false;
+            List<Itemset> finalResults = new ArrayList<>();
 
-            long startTime = System.nanoTime();
-            this.run();
-            double executionTime = (System.nanoTime() - startTime) / 1_000_000_000.0;
+            while (!foundEnoughCandidates && globalMinUtil >= minUtilLowerBound) {
+                reset();  // Reset algorithm state
+                this.minExpectedUtility = globalMinUtil;  // Use shared minUtil
 
-            runtimeResults.put(kValue, executionTime);
-            System.out.printf("Top-%d Execution Time: %.2f seconds%n", kValue, executionTime);
+                System.out.println("\nRunning for Top-" + kValue + " itemsets...");
+                System.out.println("Database Utility: " + calculateDatabaseUtility());
+                System.out.println("Initial minExpectedUtility: " + this.minExpectedUtility);
+
+                long startTime = System.nanoTime();
+
+                computeTWEU();
+                filterLowUtilityItems();
+                finalResults = generateItemsets();  // Save results
+
+                double executionTime = (System.nanoTime() - startTime) / 1_000_000_000.0;
+
+                // Check if we found enough candidates
+                if (finalResults.size() >= kValue) {
+                    foundEnoughCandidates = true;
+                } else {
+                    System.out.println("Not enough candidates found (" + finalResults.size() + "). Lowering minUtil...");
+                    globalMinUtil *= 0.8f;  // Reduce minUtil globally
+                }
+
+                System.out.printf("Top-%d Execution Time: %.2f seconds%n", kValue, executionTime);
+                runtimeResults.put(kValue, executionTime);
+            }
+
+            // ✅ PRINT FINAL TOP-K ITEMSETS
+            System.out.println("\n🔹 Final Top-" + kValue + " Itemsets:");
+            if (finalResults.isEmpty()) {
+                System.out.println("⚠️ No itemsets satisfy your condition.");
+            } else {
+                for (Itemset itemset : finalResults) {
+                    System.out.println(itemset);
+                }
+            }
         }
-        plotRuntimeResults(runtimeResults, datasetTitle); // Pass title to plotting
+
+        plotRuntimeResults(runtimeResults, datasetTitle);
     }
+
 
     public void plotRuntimeResults(Map<Integer, Double> runtimeResults, String datasetTitle) { // Add parameter
         List<Integer> kValues = new ArrayList<>(runtimeResults.keySet());
@@ -414,8 +495,6 @@ public class Algorithm {
         chart.addSeries("Runtime", kValues, runtimes);
         new SwingWrapper<>(chart).displayChart();
     }
-
-    // ------------------------------ RUN METHOD ---------------------------------------//
 
     public void run() {
         System.out.println("Database Utility: " + this.calculateDatabaseUtility());
