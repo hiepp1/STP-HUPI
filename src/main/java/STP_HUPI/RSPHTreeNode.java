@@ -2,7 +2,7 @@ package STP_HUPI;
 
 import java.util.*;
 
-class RSPHTreeNode {
+public class RSPHTreeNode {
     List<Integer> itemset;
     float expectedUtility;
     int maxPeriod;
