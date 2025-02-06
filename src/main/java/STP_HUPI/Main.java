@@ -8,6 +8,7 @@ public class Main {
     public static void main(String[] args) {
         String filepath = "src/main/java/dataset/foodmart_utility_timestamps.txt";
         String filepath2 = "src/main/java/dataset/test1.txt";
+
         String filepath3 = "src/main/java/dataset/pumsp_negative.txt";
 
         String filepath4 = "src/main/java/done_dataset/retail_negative.txt";
@@ -27,7 +28,6 @@ public class Main {
 
             Algorithm stp = new Algorithm(transactions, Integer.MAX_VALUE, 10);
             stp.evaluateTopKPerformance(extractDatasetTitle(filepath3));
-//            stp.run();
 
         } catch (IOException e) {
             System.err.println("Error reading the dataset: " + e.getMessage());
