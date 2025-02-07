@@ -30,41 +30,49 @@ public class TopKPerformanceEvaluator {
     private List<String> timeSeries = new ArrayList<>();
     private String filePath;
     private List<List<Transaction>> transactions;
+    private int[] kValues;
+    private int maxPer;
 
-    public TopKPerformanceEvaluator(String filePath, List<List<Transaction>> transactions) {
+    public TopKPerformanceEvaluator(String filePath, int[] kValues, int maxPer) {
         this.filePath = filePath;
-        this.transactions = transactions;
+        this.kValues = kValues;
+        this.maxPer = maxPer;
     }
 
     private void evaluate() {
+        try {
+            this.transactions = DatasetReader.readTimestampDataset(this.filePath); // Read dataset
 
-        int i = 1;
-        for (List<Transaction> transactionList : this.transactions) {
-            System.out.println("\n-------------------------------------------- Processing transaction list " + i + "--------------------------------------------\n");
-            String startTimeDate = getLocalDateTime(transactionList.get(0).getTimestamp());
-            String endTimeDate = getLocalDateTime(transactionList.get(transactionList.size() - 1).getTimestamp());
-            String title = "From " + startTimeDate + " to " + endTimeDate;
+            int i = 1;
+            for (List<Transaction> transactionList : this.transactions) {
+                System.out.println("\n-------------------------------------------- Processing transaction list " + i + "--------------------------------------------\n");
+                String startTimeDate = getLocalDateTime(transactionList.get(0).getTimestamp());
+                String endTimeDate = getLocalDateTime(transactionList.get(transactionList.size() - 1).getTimestamp());
+                String title = "From " + startTimeDate + " to " + endTimeDate;
 
-            // Short Time Period High Utility Probabilities Itemsets
-            System.out.println("Running STP-HUPI algorithm...");
-            STPHUPIAlgorithm stp = new STPHUPIAlgorithm(transactionList, 300);
-            stp.evaluateTopKPerformance();
-            Map<Integer, Double> stpTime = stp.getRunTimeResults();
-            Map<Integer, Double> stpMemory = stp.getMemoryResults();
-            stpExecuteRunTimes.add(stpTime);
-            stpExecuteMemory.add(stpMemory);
+                // Short Time Period High Utility Probabilities Itemsets
+                System.out.println("Running STP-HUPI algorithm...");
+                STPHUPIAlgorithm stp = new STPHUPIAlgorithm(transactionList, kValues, maxPer);
+                stp.evaluateTopKPerformance();
+                Map<Integer, Double> stpTime = stp.getRunTimeResults();
+                Map<Integer, Double> stpMemory = stp.getMemoryResults();
+                stpExecuteRunTimes.add(stpTime);
+                stpExecuteMemory.add(stpMemory);
 
-            // Short Time High Utility Probabilities Itemsets
-            System.out.println("\nRunning ST-HUPI algorithm...");
-            STHUPIAlgorithm st = new STHUPIAlgorithm(transactionList);
-            st.evaluateTopKPerformance();
-            Map<Integer, Double> stTime = st.getRunTimeResults();
-            Map<Integer, Double> stMemory = st.getMemoryResults();
-            stExecuteRunTimes.add(stTime);
-            stExecuteMemory.add(stMemory);
+                // Short Time High Utility Probabilities Itemsets
+                System.out.println("\nRunning ST-HUPI algorithm...");
+                STHUPIAlgorithm st = new STHUPIAlgorithm(transactionList, kValues);
+                st.evaluateTopKPerformance();
+                Map<Integer, Double> stTime = st.getRunTimeResults();
+                Map<Integer, Double> stMemory = st.getMemoryResults();
+                stExecuteRunTimes.add(stTime);
+                stExecuteMemory.add(stMemory);
 
-            timeSeries.add(title);
-            i += 1;
+                timeSeries.add(title);
+                i += 1;
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading the dataset: " + e.getMessage());
         }
     }
 

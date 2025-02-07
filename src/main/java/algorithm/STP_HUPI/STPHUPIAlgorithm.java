@@ -17,6 +17,7 @@ import org.knowm.xchart.*;
 @AllArgsConstructor
 public class STPHUPIAlgorithm {
     private List<Transaction> transactions;
+    private int[] kValues;
     private int maxPer;
     private int k;
     private float minExpectedUtility;
@@ -31,9 +32,10 @@ public class STPHUPIAlgorithm {
     private Map<Integer, Double> runTimeResults = new LinkedHashMap<>();
     private Map<Integer, Double> memoryResults = new LinkedHashMap<>();
 
-    public STPHUPIAlgorithm(List<Transaction> transactions, int maxPer) {
+    public STPHUPIAlgorithm(List<Transaction> transactions, int[] kValues, int maxPer) {
         this.originalTransactions = new ArrayList<>(transactions);
         this.transactions = new ArrayList<>(transactions);
+        this.kValues = kValues;
         this.maxPer = maxPer;
         this.topKItemsets = new PriorityQueue<>(Comparator.comparing(Itemset::getExpectedUtility));
         this.tweu = new HashMap<>();
@@ -327,7 +329,6 @@ public class STPHUPIAlgorithm {
     // ------------------------------ RUN METHOD ---------------------------------------//
 
     public void evaluateTopKPerformance() {
-        int[] kValues = {1, 10, 20, 30, 40, 50};
         List<Itemset> copyFinalResult = new ArrayList<>();
 
         float databaseUtility = calculateDatabaseUtility();
