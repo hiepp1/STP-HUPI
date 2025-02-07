@@ -17,6 +17,7 @@ import org.knowm.xchart.*;
 @AllArgsConstructor
 public class STHUPIAlgorithm {
     private List<Transaction> transactions;
+    private int[] kValues;
     private int k;
     private float minExpectedUtility;
     private PriorityQueue<Itemset> topKItemsets;
@@ -28,9 +29,10 @@ public class STHUPIAlgorithm {
     private Map<Integer, Double> runTimeResults = new LinkedHashMap<>();
     private Map<Integer, Double> memoryResults = new LinkedHashMap<>();
 
-    public STHUPIAlgorithm(List<Transaction> transactions) {
+    public STHUPIAlgorithm(List<Transaction> transactions, int[] kValues) {
         this.originalTransactions = new ArrayList<>(transactions);
         this.transactions = new ArrayList<>(transactions);
+        this.kValues = kValues;
         this.topKItemsets = new PriorityQueue<>(Comparator.comparing(Itemset::getExpectedUtility));
         this.tweu = new HashMap<>();
         this.posUtility = new HashMap<>();
@@ -301,8 +303,6 @@ public class STHUPIAlgorithm {
     // ------------------------------ RUN METHOD ---------------------------------------//
 
     public void evaluateTopKPerformance() {
-        int[] kValues = {1, 10, 20, 30, 40, 50};
-
         float databaseUtility = calculateDatabaseUtility();
         float globalMinUtil = databaseUtility * 0.01f;  // Shared minUtil across k-values
         float minUtilLowerBound = globalMinUtil * 0.00001f;

@@ -23,7 +23,6 @@ public class Itemset implements Comparable<Itemset> {
     @Override
     public String toString() {
         return "Itemset: " + this.items +
-                ", Utility: " + this.utility +
                 ", Expected Utility: " + this.expectedUtility +
                 ", Max Period: " + this.maxPer;
     }
