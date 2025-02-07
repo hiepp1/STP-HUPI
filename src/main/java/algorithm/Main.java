@@ -13,6 +13,6 @@ public class Main {
         TopKPerformanceEvaluator evaluator = new TopKPerformanceEvaluator(filepath3, kValues, maxPer);
         evaluator.run();
         evaluator.displayResults("runtime");
-
+//        evaluator.displayResults("memory");
     }
 }
