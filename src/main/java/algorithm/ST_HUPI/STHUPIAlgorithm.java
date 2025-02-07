@@ -2,7 +2,6 @@ package algorithm.ST_HUPI;
 
 import algorithm.Itemset;
 import algorithm.Occurrence;
-import algorithm.ST_HUPI.SHTreeNode;
 import algorithm.Transaction;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,11 +25,12 @@ public class STHUPIAlgorithm {
     private Map<Integer, Float> negUtility;
     private Map<String, Float> psuCache = new HashMap<>();
     private final List<Transaction> originalTransactions;
+    private Map<Integer, Double> runTimeResults = new LinkedHashMap<>();
+    private Map<Integer, Double> memoryResults = new LinkedHashMap<>();
 
     public STHUPIAlgorithm(List<Transaction> transactions) {
         this.originalTransactions = new ArrayList<>(transactions);
         this.transactions = new ArrayList<>(transactions);
-//        this.minExpectedUtility = calculateDatabaseUtility() * 0.001f;
         this.topKItemsets = new PriorityQueue<>(Comparator.comparing(Itemset::getExpectedUtility));
         this.tweu = new HashMap<>();
         this.posUtility = new HashMap<>();
@@ -39,28 +39,28 @@ public class STHUPIAlgorithm {
 
     // ------------------------------------------- PRIU STRATEGIES -----------------------------------//
     private float calculatePRIU() {
-        return (float) this.transactions.stream()
+        return (float) transactions.stream()
                 .mapToDouble(transaction -> transaction.getItems().stream()
-                        .mapToDouble(item -> this.posUtility.getOrDefault(item, 0f))
+                        .mapToDouble(item -> posUtility.getOrDefault(item, 0f))
                         .sum())
                 .max().orElse(0);
     }
 
     private float calculatePLIU_E() {
-        return (float) this.transactions.stream()
+        return (float) transactions.stream()
                 .mapToDouble(transaction -> {List<Integer> sortedItems = transaction.getItems()
-                        .stream().sorted(Comparator.comparingDouble(item -> this.posUtility.getOrDefault(item, 0f)))
+                        .stream().sorted(Comparator.comparingDouble(item -> posUtility.getOrDefault(item, 0f)))
                         .collect(Collectors.toList());
                     return sortedItems.stream().limit(2)
-                            .mapToDouble(item -> this.posUtility.getOrDefault(item, 0f))
+                            .mapToDouble(item -> posUtility.getOrDefault(item, 0f))
                             .sum();
                 }).max().orElse(0);
     }
 
     private float calculatePLIU_LB() {
-        if (this.topKItemsets.isEmpty()) return 0;
+        if (topKItemsets.isEmpty()) return 0;
 
-        return (float) this.topKItemsets.stream()
+        return (float) topKItemsets.stream()
                 .mapToDouble(Itemset::getExpectedUtility)  // Use probability-based expected utility
                 .min().orElse(0); // Get the smallest expected utility in top-K
     }
@@ -68,7 +68,7 @@ public class STHUPIAlgorithm {
     // ------------------------------------------- PRIU STRATEGIES -----------------------------------//
 
     private int calculateDatabaseUtility() {
-        return this.transactions.stream()
+        return transactions.stream()
                 .mapToInt(Transaction::getTransactionUtility).sum();
     }
 
@@ -81,7 +81,7 @@ public class STHUPIAlgorithm {
     }
 
     private List<Occurrence> findOccurrences(List<Integer> itemset) {
-        return this.transactions.stream().filter(transaction -> transaction.getItems().containsAll(itemset)).map(transaction -> {
+        return transactions.stream().filter(transaction -> transaction.getItems().containsAll(itemset)).map(transaction -> {
             int utility = this.calculateUtility(transaction, itemset);
             float posUtil = Math.max(utility, 0);
             float negUtil = Math.min(utility, 0);
@@ -110,26 +110,20 @@ public class STHUPIAlgorithm {
 
     // ---------------------------- Pruned Strategies ---------------------------//
     private void filterLowUtilityItems() {
-        this.transactions.removeIf(transaction -> {
-            transaction.getItems().removeIf(item -> this.tweu.getOrDefault(item, 0f) < this.minExpectedUtility);
+        transactions.removeIf(transaction -> {
+            transaction.getItems().removeIf(item -> tweu.getOrDefault(item, 0f) < minExpectedUtility);
             return transaction.getItems().isEmpty();
         });
     }
 
     //     ---------------------------- New Method for PSU --------------------------- //
     public float calculatePSU(List<Integer> prefix, int extensionItem) {
-        Set<String> processedPSU = new HashSet<>();
         String key = prefix + "-" + extensionItem;
-
-        if (processedPSU.contains(key)) {
-            return 0; // Avoid duplicate calculations
-        }
-        processedPSU.add(key);
 
         // Track max PSU instead of sum
         float maxPSU = 0;
 
-        for (Transaction transaction : this.transactions) {
+        for (Transaction transaction : transactions) {
             if (!transaction.getItems().containsAll(prefix) || !transaction.getItems().contains(extensionItem)) {
                 continue;
             }
@@ -152,18 +146,14 @@ public class STHUPIAlgorithm {
             maxPSU = Math.max(maxPSU, computedPSU);
         }
 
-        this.psuCache.put(key, maxPSU);
+        psuCache.put(key, maxPSU);
         return maxPSU;
     }
     // ---------------------------- Pruned Strategies ---------------------------//
 
     private void computeTWEU() {
-        // Reset maps before computation
-        this.tweu.clear();
-        this.posUtility.clear();
-        this.negUtility.clear();
+        for (Transaction transaction : transactions) {
 
-        for (Transaction transaction : this.transactions) {
             // Calculate actual transaction utility based on the present items only
             float transactionUtility = 0;
 
@@ -171,52 +161,47 @@ public class STHUPIAlgorithm {
                 int item = transaction.getItems().get(i);
                 float utility = transaction.getUtilities().get(i);
 
-                // Add to positive or negative utility maps
-                if (utility >= 0) {
-                    this.posUtility.merge(item, utility, Float::sum);
-                } else {
-                    this.negUtility.merge(item, utility, Float::sum);
-                }
+                if (utility >= 0) posUtility.merge(item, utility, Float::sum);
+                else negUtility.merge(item, utility, Float::sum);
 
-                // Add to transaction utility only for this item
                 transactionUtility += utility;
             }
             for (int item : transaction.getItems()) {
-                this.tweu.merge(item, transactionUtility, Float::sum);
+                tweu.merge(item, transactionUtility, Float::sum);
             }
         }
     }
 
     public List<Itemset> generateItemsets() {
-        List<Integer> sortedItems = this.transactions.stream()
+        List<Integer> sortedItems = transactions.stream()
                 .flatMap(t -> t.getItems().stream())
                 .distinct().sorted((a, b) ->
-                        Float.compare(this.tweu.getOrDefault(b, 0f), this.tweu.getOrDefault(a, 0f)))
+                        Float.compare(tweu.getOrDefault(b, 0f), tweu.getOrDefault(a, 0f)))
                 .collect(Collectors.toList());
 
         SHTreeNode root = new SHTreeNode(new ArrayList<>(), 0, 0, 0);
 
         for (Integer item : sortedItems) {
-            if (this.tweu.getOrDefault(item, 0f) >= this.minExpectedUtility) {
+            if (tweu.getOrDefault(item, 0f) >= minExpectedUtility) {
                 List<Integer> currentItemset = new ArrayList<>();
                 currentItemset.add(item);
                 SHTreeNode node = new SHTreeNode(currentItemset, 0, 0, 0);
                 root.children.put(item, node);
 
-                List<Occurrence> occurrences = findOccurrences(currentItemset);
-                sphTreeGrowth(node, occurrences);
+                List<Occurrence> occurrences = this.findOccurrences(currentItemset);
+                this.shTreeGrowth(node, occurrences);
             }
         }
 
-        List<Itemset> results = new ArrayList<>(this.topKItemsets);
+        List<Itemset> results = new ArrayList<>(topKItemsets);
         results.sort(Comparator.comparing(Itemset::getExpectedUtility).reversed());
         return results;
     }
 
 
     private void updateMinExpectedUtility() {
-        if (this.topKItemsets.size() >= this.k) {
-            List<Itemset> sortedItemsets = new ArrayList<>(this.topKItemsets);
+        if (topKItemsets.size() >= k) {
+            List<Itemset> sortedItemsets = new ArrayList<>(topKItemsets);
             sortedItemsets.sort(Comparator.comparing(Itemset::getExpectedUtility).reversed());
 
             float newMinUtil = sortedItemsets.get(sortedItemsets.size() - 1).getExpectedUtility();
@@ -232,9 +217,9 @@ public class STHUPIAlgorithm {
 
             float dynamicThreshold = (newMinUtil * 0.4f) + (Math.min(priu, Math.min(pliue, pliulb)) * 0.6f);
 
-            if (dynamicThreshold > this.minExpectedUtility * 1.1f) {  // 10% increase rule
-                this.minExpectedUtility = dynamicThreshold;
-                System.out.println("Updated minExpectedUtility: " + this.minExpectedUtility);
+            if (dynamicThreshold > minExpectedUtility * 1.1f) {  // 10% increase rule
+                minExpectedUtility = dynamicThreshold;
+//                System.out.println("Updated minExpectedUtility: " + minExpectedUtility);
             }
         }
     }
@@ -250,39 +235,39 @@ public class STHUPIAlgorithm {
         return getCanonicalOrder(items).toString();
     }
 
-    private void sphTreeGrowth(SHTreeNode node, List<Occurrence> occurrences) {
-        float posUtility = this.getTotalPositiveUtility(occurrences);
-        float negUtility = this.getTotalNegativeUtility(occurrences);
-        float totalExpectedUtility = this.getTotalExpectedUtility(occurrences);
+    private void shTreeGrowth(SHTreeNode node, List<Occurrence> occurrences) {
+        float posUtility = getTotalPositiveUtility(occurrences);
+        float negUtility = getTotalNegativeUtility(occurrences);
+        float totalExpectedUtility = getTotalExpectedUtility(occurrences);
 
-        if (totalExpectedUtility < this.minExpectedUtility) return;
+        if (totalExpectedUtility < minExpectedUtility) return;
 
-        this.processCurrentItemset(node.itemset, occurrences);
+        processCurrentItemset(node.itemset, occurrences);
 
-        List<Integer> extensionItems = this.transactions.stream()
+        List<Integer> extensionItems = transactions.stream()
                 .flatMap(t -> t.getItems().stream())
                 .filter(item -> !node.itemset.contains(item)).distinct().sorted((a, b) ->
-                        Float.compare(this.tweu.getOrDefault(b, 0f), this.tweu.getOrDefault(a, 0f)))
+                        Float.compare(tweu.getOrDefault(b, 0f), tweu.getOrDefault(a, 0f)))
                 .collect(Collectors.toList());
 
         for (Integer item : extensionItems) {
-            float psu = this.calculatePSU(node.itemset, item);
-            if (psu >= this.minExpectedUtility) {
+            float psu = calculatePSU(node.itemset, item);
+            if (psu >= minExpectedUtility) {
                 List<Integer> newItemset = new ArrayList<>(node.itemset);
                 newItemset.add(item);
 
                 SHTreeNode childNode = new SHTreeNode(newItemset, totalExpectedUtility, posUtility, negUtility);
                 node.children.put(item, childNode);
 
-                List<Occurrence> newOccurrences = findOccurrences(newItemset);
-                sphTreeGrowth(childNode, newOccurrences);
+                List<Occurrence> newOccurrences = this.findOccurrences(newItemset);
+                this.shTreeGrowth(childNode, newOccurrences);
             }
         }
     }
 
     private void processCurrentItemset(List<Integer> currentItemset, List<Occurrence> occurrences) {
         String canonicalKey = this.getItemsetKey(currentItemset);
-        if (this.topKSeen.contains(canonicalKey)) {
+        if (topKSeen.contains(canonicalKey)) {
             return;
         }
 
@@ -295,81 +280,75 @@ public class STHUPIAlgorithm {
 
         Itemset itemset = new Itemset(new ArrayList<>(currentItemset), totalUtility, totalExpectedUtility, 0);
 
-        if (this.topKItemsets.size() < this.k) {
-            this.topKItemsets.offer(itemset);
-            this.topKSeen.add(canonicalKey);
+        if (topKItemsets.size() < this.k) {
+            topKItemsets.offer(itemset);
+            topKSeen.add(canonicalKey);
         } else {
-            Itemset lowestUtilityItemset = this.topKItemsets.peek();
+            Itemset lowestUtilityItemset = topKItemsets.peek();
             if (lowestUtilityItemset != null) {
                 if (itemset.getExpectedUtility() > lowestUtilityItemset.getExpectedUtility()) {
-                    Itemset removed = this.topKItemsets.poll();
-                    this.topKSeen.remove(getItemsetKey(removed.getItems()));
-                    this.topKItemsets.offer(itemset);
-                    this.topKSeen.add(canonicalKey);
+                    Itemset removed = topKItemsets.poll();
+                    topKSeen.remove(getItemsetKey(removed.getItems()));
+                    topKItemsets.offer(itemset);
+                    topKSeen.add(canonicalKey);
                 }
             }
         }
-        this.updateMinExpectedUtility();
+        updateMinExpectedUtility();
     }
 
 
     // ------------------------------ RUN METHOD ---------------------------------------//
 
-    public void reset() {
-        // Clear existing collections
-        this.topKItemsets.clear();
-        this.topKSeen.clear();
-        this.tweu.clear();
-        this.posUtility.clear();
-        this.negUtility.clear();
-        this.psuCache.clear();
+    public void evaluateTopKPerformance() {
+        int[] kValues = {1, 10, 20, 30, 40, 50};
 
-        // Reinitialize transactions from original data
-        this.transactions = new ArrayList<>(originalTransactions); // Need to add originalTransactions field
+        float databaseUtility = calculateDatabaseUtility();
+        float globalMinUtil = databaseUtility * 0.01f;  // Shared minUtil across k-values
+        float minUtilLowerBound = globalMinUtil * 0.00001f;
 
-        // Recalculate initial threshold
-        this.minExpectedUtility = calculateDatabaseUtility() * 0.001f;
-
-        // Recompute utility maps
-        this.computeTWEU();
-    }
-
-    public void evaluateTopKPerformance(String datasetTitle) {
-        int[] kValues = {1, 5, 10, 20};  // Different k values to test
-        Map<Integer, Double> runtimeResults = new LinkedHashMap<>();
-
-        float globalMinUtil = this.calculateDatabaseUtility() * 0.01f;  // Shared minUtil across k-values
-        float minUtilLowerBound = this.calculateDatabaseUtility() * 0.00001f;
-
-        System.out.println("Database Utility: " + this.calculateDatabaseUtility());
+//        System.out.println("Database Utility: " + databaseUtility);
+//        System.out.println("Minimum Utility: " + globalMinUtil);
         for (int kValue : kValues) {
-            this.k = kValue;
+            k = kValue;
             boolean foundEnoughCandidates = false;
             List<Itemset> finalResults = new ArrayList<>();
-            System.out.println("\nRunning for Top-" + this.k + " Itemsets...");
+            System.out.println("\nRunning for Top-" + k + " Itemsets...");
+
+            // ✅ RUNTIME MEASUREMENT BEFORE EXECUTION
             long startTime = System.nanoTime();
+
+            // ✅ MEMORY MEASUREMENT BEFORE EXECUTION
+            Runtime runtime = Runtime.getRuntime();
+            runtime.gc();  // Suggest garbage collection before measuring
+            long memoryBefore = runtime.totalMemory() - runtime.freeMemory();
 
             while (!foundEnoughCandidates && globalMinUtil >= minUtilLowerBound) {
                 reset();  // Reset algorithm state
-                this.minExpectedUtility = globalMinUtil;  // Use shared minUtil
-                System.out.println("Initial minExpectedUtility: " + this.minExpectedUtility);
-                this.filterLowUtilityItems();
-                finalResults = this.generateItemsets();  // Save results
-
-
+                minExpectedUtility = globalMinUtil;  // Use shared minUtil
+//                System.out.println("Initial minExpectedUtility: " + minExpectedUtility);
+                filterLowUtilityItems();
+                finalResults = generateItemsets();  // Save results
 
                 // Check if we found enough candidates
                 if (finalResults.size() >= kValue) {
                     foundEnoughCandidates = true;
                 } else {
-                    System.out.println("Not enough candidates found (" + finalResults.size() + "). Lowering minUtil...");
+//                    System.out.println("Not enough candidates found (" + finalResults.size() + "). Lowering minUtil...");
                     globalMinUtil *= 0.8f;  // Reduce minUtil globally
                 }
             }
 
-            double executionTime = (System.nanoTime() - startTime) / 1_000_000_000.0;
-            System.out.printf("Top-%d Execution Time: %.2f seconds%n", kValue, executionTime);
-            runtimeResults.put(kValue, executionTime);
+            // ✅ TIME MEASUREMENT AFTER EXECUTION
+            double executionTime = (System.nanoTime() - startTime) / 1_000_000.0;;
+            System.out.printf("Top-%d Execution Time: %.2f ms%n", kValue, executionTime);
+            runTimeResults.put(kValue, executionTime);
+
+            // ✅ MEMORY MEASUREMENT AFTER EXECUTION
+            long memoryAfter = runtime.totalMemory() - runtime.freeMemory();
+            double memoryUsedMB = (memoryAfter - memoryBefore) / (1024.0 * 1024.0); // Convert to MB
+            System.out.printf("Top-%d Memory Usage: %.2f MB%n", kValue, memoryUsedMB);
+            memoryResults.put(kValue, memoryUsedMB);
 
             // ✅ PRINT FINAL TOP-K ITEMSETS
             System.out.println("\n🔹 Final Top-" + kValue + " Itemsets:");
@@ -381,9 +360,7 @@ public class STHUPIAlgorithm {
                 }
             }
         }
-        this.plotRuntimeResults(runtimeResults, datasetTitle);
     }
-
 
     public void plotRuntimeResults(Map<Integer, Double> runtimeResults, String datasetTitle) { // Add parameter
         List<Integer> kValues = new ArrayList<>(runtimeResults.keySet());
@@ -397,6 +374,75 @@ public class STHUPIAlgorithm {
 
         chart.addSeries("Runtime", kValues, runtimes);
         new SwingWrapper<>(chart).displayChart();
+    }
+
+    public Map<Integer, Double> evaluateMemoryUsage() {
+        int[] kValues = {1, 10, 20, 30, 40, 50};
+        Map<Integer, Double> memoryResults = new LinkedHashMap<>();
+
+        float databaseUtility = calculateDatabaseUtility();
+        float globalMinUtil = databaseUtility * 0.01f;
+        float minUtilLowerBound = globalMinUtil * 0.00001f;
+
+        System.out.println("Database Utility: " + databaseUtility);
+        System.out.println("Minimum Utility: " + globalMinUtil);
+
+        for (int kValue : kValues) {
+            k = kValue;
+            boolean foundEnoughCandidates = false;
+            List<Itemset> finalResults = new ArrayList<>();
+            System.out.println("\nRunning for Top-" + k + " Itemsets...");
+
+            // ✅ MEMORY MEASUREMENT BEFORE EXECUTION
+            Runtime runtime = Runtime.getRuntime();
+            runtime.gc();  // Suggest garbage collection before measuring
+            long memoryBefore = runtime.totalMemory() - runtime.freeMemory();
+
+            while (!foundEnoughCandidates && globalMinUtil >= minUtilLowerBound) {
+                reset();
+                minExpectedUtility = globalMinUtil;
+                filterLowUtilityItems();
+                finalResults = generateItemsets();
+
+                if (finalResults.size() >= kValue) {
+                    foundEnoughCandidates = true;
+                } else {
+                    System.out.println("Not enough candidates found (" + finalResults.size() + "). Lowering minUtil...");
+                    globalMinUtil *= 0.8f;
+                }
+            }
+
+            // ✅ MEMORY MEASUREMENT AFTER EXECUTION
+            long memoryAfter = runtime.totalMemory() - runtime.freeMemory();
+            double memoryUsedMB = (memoryAfter - memoryBefore) / (1024.0 * 1024.0); // Convert to MB
+
+            System.out.printf("Top-%d Memory Usage: %.2f MB%n", kValue, memoryUsedMB);
+            memoryResults.put(kValue, memoryUsedMB);
+
+            // ✅ PRINT FINAL TOP-K ITEMSETS
+            System.out.println("\n🔹 Final Top-" + kValue + " Itemsets:");
+            if (finalResults.isEmpty()) {
+                System.out.println("⚠️ No itemsets satisfy your condition.");
+            } else {
+                for (Itemset itemset : finalResults) {
+                    System.out.println(itemset);
+                }
+            }
+        }
+        return memoryResults;
+    }
+
+
+    private void reset() {
+        // Clear existing collections
+        topKItemsets.clear();
+        topKSeen.clear();
+        tweu.clear();
+        posUtility.clear();
+        negUtility.clear();
+        psuCache.clear();
+        transactions = new ArrayList<>(originalTransactions); // Need to add originalTransactions field
+        computeTWEU();
     }
 }
 
