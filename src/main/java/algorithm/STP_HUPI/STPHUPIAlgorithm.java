@@ -10,8 +10,6 @@ import lombok.NoArgsConstructor;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import org.knowm.xchart.*;
-
 @Data
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
@@ -209,12 +207,12 @@ public class STPHUPIAlgorithm {
                         Float.compare(tweu.getOrDefault(b, 0f), tweu.getOrDefault(a, 0f)))
                 .collect(Collectors.toList());
 
-        SPHTree root = new SPHTree(new ArrayList<>(), 0, 0, 0, 0);
+        ShortTimePeriodTree root = new ShortTimePeriodTree(new ArrayList<>(), 0, 0, 0, 0);
 
         for (Integer item : sortedItems) {
             List<Integer> currentItemset = new ArrayList<>();
             currentItemset.add(item);
-            SPHTree node = new SPHTree(currentItemset, 0, 0, 0, 0);
+            ShortTimePeriodTree node = new ShortTimePeriodTree(currentItemset, 0, 0, 0, 0);
             root.children.put(item, node);
 
             List<Occurrence> occurrences = findOccurrences(currentItemset);
@@ -254,7 +252,7 @@ public class STPHUPIAlgorithm {
         return getCanonicalOrder(items).toString();
     }
 
-    private void sphTreeGrowth(SPHTree node, List<Occurrence> occurrences) {
+    private void sphTreeGrowth(ShortTimePeriodTree node, List<Occurrence> occurrences) {
 
         if (occurrences.size() <= 1) return;
 
@@ -281,7 +279,7 @@ public class STPHUPIAlgorithm {
                 List<Integer> newItemset = new ArrayList<>(node.itemset);
                 newItemset.add(item);
 
-                SPHTree childNode = new SPHTree(newItemset, totalExpectedUtility, posUtility, negUtility, maxPeriod);
+                ShortTimePeriodTree childNode = new ShortTimePeriodTree(newItemset, totalExpectedUtility, posUtility, negUtility, maxPeriod);
                 node.children.put(item, childNode);
 
                 List<Occurrence> newOccurrences = findOccurrences(newItemset);
