@@ -181,13 +181,13 @@ public class STHUPIAlgorithm {
                         Float.compare(tweu.getOrDefault(b, 0f), tweu.getOrDefault(a, 0f)))
                 .collect(Collectors.toList());
 
-        SHTreeNode root = new SHTreeNode(new ArrayList<>(), 0, 0, 0);
+        ShortTimeTree root = new ShortTimeTree(new ArrayList<>(), 0, 0, 0);
 
         for (Integer item : sortedItems) {
             if (tweu.getOrDefault(item, 0f) >= minExpectedUtility) {
                 List<Integer> currentItemset = new ArrayList<>();
                 currentItemset.add(item);
-                SHTreeNode node = new SHTreeNode(currentItemset, 0, 0, 0);
+                ShortTimeTree node = new ShortTimeTree(currentItemset, 0, 0, 0);
                 root.children.put(item, node);
 
                 List<Occurrence> occurrences = this.findOccurrences(currentItemset);
@@ -237,7 +237,7 @@ public class STHUPIAlgorithm {
         return getCanonicalOrder(items).toString();
     }
 
-    private void shTreeGrowth(SHTreeNode node, List<Occurrence> occurrences) {
+    private void shTreeGrowth(ShortTimeTree node, List<Occurrence> occurrences) {
         float posUtility = getTotalPositiveUtility(occurrences);
         float negUtility = getTotalNegativeUtility(occurrences);
         float totalExpectedUtility = getTotalExpectedUtility(occurrences);
@@ -258,7 +258,7 @@ public class STHUPIAlgorithm {
                 List<Integer> newItemset = new ArrayList<>(node.itemset);
                 newItemset.add(item);
 
-                SHTreeNode childNode = new SHTreeNode(newItemset, totalExpectedUtility, posUtility, negUtility);
+                ShortTimeTree childNode = new ShortTimeTree(newItemset, totalExpectedUtility, posUtility, negUtility);
                 node.children.put(item, childNode);
 
                 List<Occurrence> newOccurrences = this.findOccurrences(newItemset);

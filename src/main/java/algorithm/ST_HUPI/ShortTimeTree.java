@@ -5,20 +5,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class SHTreeNode {
+class ShortTimeTree {
     List<Integer> itemset;
     float expectedUtility;
     float posUtility;
     float negUtility;
-    Map<Integer, SHTreeNode> children; // Tree structure
+    Map<Integer, ShortTimeTree> children; // Tree structure
 
-    public SHTreeNode(List<Integer> itemset, float expectedUtility) {
+    public ShortTimeTree(List<Integer> itemset, float expectedUtility) {
         this.itemset = new ArrayList<>(itemset);
         this.expectedUtility = expectedUtility;
         this.children = new HashMap<>();
     }
 
-    public SHTreeNode(List<Integer> itemset, float expectedUtility, float posUtility, float negUtility) {
+    public ShortTimeTree(List<Integer> itemset, float expectedUtility, float posUtility, float negUtility) {
         this.itemset = new ArrayList<>(itemset);
         this.expectedUtility = expectedUtility;
         this.posUtility = posUtility;
