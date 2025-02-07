@@ -2,6 +2,7 @@ package algorithm;
 
 import java.io.*;
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class DatasetReader {
@@ -25,21 +26,21 @@ public class DatasetReader {
         return weeklyTransactions;
     }
 
-    public static List<Transaction> readDataset(String filepath) throws IOException {
-        List<Transaction> transactions = new ArrayList<>();
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filepath))) {
-            String line;
-            int transactionID = 1;
-
-            while ((line = bufferedReader.readLine()) != null) {
-                Transaction transaction = parseTransaction(line, transactionID++);
-                if (transaction != null) {
-                    transactions.add(transaction);
-                }
-            }
-        }
-        return transactions;
-    }
+//    public static List<Transaction> readDataset(String filepath) throws IOException {
+//        List<Transaction> transactions = new ArrayList<>();
+//        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filepath))) {
+//            String line;
+//            int transactionID = 1;
+//
+//            while ((line = bufferedReader.readLine()) != null) {
+//                Transaction transaction = parseTransaction(line, transactionID++);
+//                if (transaction != null) {
+//                    transactions.add(transaction);
+//                }
+//            }
+//        }
+//        return transactions;
+//    }
 
     private static Transaction parseTransaction(String line, int transactionID) {
         try {
@@ -71,15 +72,25 @@ public class DatasetReader {
     private static List<Transaction> extractWeeklyTransactions(List<Transaction> transactions, long startTimestamp) {
         List<Transaction> result = new ArrayList<>();
         int secondsInAWeek = 604800; // Seconds in one week
-        long endTimestamp = startTimestamp + secondsInAWeek;
-        int i = 1;
+        long endTimestamp = alignToEndOfDay(startTimestamp) + secondsInAWeek;
         for (Transaction transaction : transactions) {
-            if (transaction.getTimestamp() >= startTimestamp && transaction.getTimestamp() < endTimestamp) {
+            if (transaction.getTimestamp() >= startTimestamp && transaction.getTimestamp() <= endTimestamp) {
                 result.add(transaction);
             }
         }
-        System.err.println("Extracted " + result.size() + " transactions from " + getLocalDate(startTimestamp) + " to " + getLocalDate(endTimestamp));
+
+        System.err.println("Extracted " + result.size() + " transactions from " + getLocalDateTime(startTimestamp) + " to " + getLocalDateTime(endTimestamp));
         return result;
+    }
+
+    private static long alignToEndOfDay(long timestamp) {
+        Instant instant = Instant.ofEpochSecond(timestamp);
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+
+        // Set time to 23:59:59 of the same day
+        LocalDateTime endOfDay = localDateTime.toLocalDate().atTime(23, 59, 59);
+
+        return endOfDay.atZone(ZoneId.systemDefault()).toEpochSecond();
     }
 
     private static List<List<Transaction>> transformToWeeklyTransactions(List<Transaction> transactions) {
@@ -90,16 +101,17 @@ public class DatasetReader {
             if (transaction.getTimestamp() >= startTimestamp) {
                 List<Transaction> weeklyTransaction = extractWeeklyTransactions(transactions, startTimestamp);
                 weeklyTransactions.add(weeklyTransaction);
-                startTimestamp = transaction.getTimestamp() + 604800;
+                startTimestamp = alignToEndOfDay(startTimestamp) + 604801;
             }
         }
 
         return weeklyTransactions;
     }
 
-    private static LocalDate getLocalDate(long timestamp) {
+    private static String getLocalDateTime(long timestamp) {
         Instant instant = Instant.ofEpochSecond(timestamp);
-        LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, TimeZone.getDefault().toZoneId());
-        return localDateTime.toLocalDate();
+        LocalDateTime dateTime = LocalDateTime.ofInstant(instant, TimeZone.getDefault().toZoneId());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
+        return dateTime.format(formatter);
     }
 }
