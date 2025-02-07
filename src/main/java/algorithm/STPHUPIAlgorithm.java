@@ -378,6 +378,7 @@ public class STPHUPIAlgorithm {
         this.computeTWEU();
     }
 
+
     public void evaluateTopKPerformance(String datasetTitle) {
         int[] kValues = {1, 5, 10, 20};  // Different k values to test
         Map<Integer, Double> runtimeResults = new LinkedHashMap<>();
@@ -399,8 +400,6 @@ public class STPHUPIAlgorithm {
                 System.out.println("Initial minExpectedUtility: " + this.minExpectedUtility);
                 this.filterLowUtilityItems();
                 finalResults = this.generateItemsets();  // Save results
-
-
 
                 // Check if we found enough candidates
                 if (finalResults.size() >= kValue) {

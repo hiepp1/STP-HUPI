@@ -16,7 +16,7 @@ public class Main {
         String filepath6 = "src/main/java/dataset/timestampDataset/kosarak_timestamp.txt";
 
         try {
-            List<List<Transaction>> transactions = DatasetReader.readTimestampDataset(filepath6);
+            List<List<Transaction>> transactions = DatasetReader.readTimestampDataset(filepath5);
 
             int i = 1;
             for (List<Transaction> transactionList : transactions) {
