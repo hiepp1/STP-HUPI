@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class DatasetReader {
-    public static List<List<Transaction>> readTimestampDataset(String filepath) throws IOException {
+    public static List<List<Transaction>> readDataset(String filepath) throws IOException {
         List<Transaction> transactions = new ArrayList<>();
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filepath))) {
             String line;
@@ -25,22 +25,6 @@ public class DatasetReader {
         System.out.println("Short Time Transactions loaded: " + weeklyTransactions.size());
         return weeklyTransactions;
     }
-
-//    public static List<Transaction> readDataset(String filepath) throws IOException {
-//        List<Transaction> transactions = new ArrayList<>();
-//        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filepath))) {
-//            String line;
-//            int transactionID = 1;
-//
-//            while ((line = bufferedReader.readLine()) != null) {
-//                Transaction transaction = parseTransaction(line, transactionID++);
-//                if (transaction != null) {
-//                    transactions.add(transaction);
-//                }
-//            }
-//        }
-//        return transactions;
-//    }
 
     private static Transaction parseTransaction(String line, int transactionID) {
         try {

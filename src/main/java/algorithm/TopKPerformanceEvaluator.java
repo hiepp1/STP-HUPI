@@ -1,5 +1,6 @@
 package algorithm;
 
+import algorithm.STP_HUI.STPHUIAlgorithm;
 import algorithm.STP_HUPI.STPHUPIAlgorithm;
 import algorithm.ST_HUPI.STHUPIAlgorithm;
 import lombok.AllArgsConstructor;
@@ -14,10 +15,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 
 @Data
 @AllArgsConstructor
@@ -25,8 +23,12 @@ import java.util.TimeZone;
 public class TopKPerformanceEvaluator {
     private List<Map<Integer, Double>> stpExecuteRunTimes = new ArrayList<>();
     private List<Map<Integer, Double>> stExecuteRunTimes = new ArrayList<>();
+    private List<Map<Integer, Double>> stp3ExecuteRunTimes = new ArrayList<>();
     private List<Map<Integer, Double>> stpExecuteMemory = new ArrayList<>();
     private List<Map<Integer, Double>> stExecuteMemory = new ArrayList<>();
+    private List<Map<Integer, Double>> stp3ExecuteMemory = new ArrayList<>();
+
+
     private List<String> timeSeries = new ArrayList<>();
     private String filePath;
     private List<List<Transaction>> transactions;
@@ -41,7 +43,7 @@ public class TopKPerformanceEvaluator {
 
     private void evaluate() {
         try {
-            this.transactions = DatasetReader.readTimestampDataset(this.filePath); // Read dataset
+            this.transactions = DatasetReader.readDataset(this.filePath); // Read dataset
 
             int i = 1;
             for (List<Transaction> transactionList : this.transactions) {
@@ -59,8 +61,17 @@ public class TopKPerformanceEvaluator {
                 stpExecuteRunTimes.add(stpTime);
                 stpExecuteMemory.add(stpMemory);
 
+                // Short Time Period High Utility Itemsets
+                System.out.println("\nRunning STP-HUI algorithm...");
+                STPHUIAlgorithm stp3 = new STPHUIAlgorithm(transactionList, kValues, maxPer);
+                stp3.evaluateTopKPerformance();
+                Map<Integer, Double> stp3Time = stp3.getRunTimeResults();
+                Map<Integer, Double> stp3Memory = stp3.getMemoryResults();
+                stp3ExecuteRunTimes.add(stp3Time);
+                stp3ExecuteMemory.add(stp3Memory);
+
                 // Short Time High Utility Probabilities Itemsets
-                System.out.println("\nRunning ST-HUPI algorithm...");
+                System.out.println("\nRunning ST-HUIP algorithm...");
                 STHUPIAlgorithm st = new STHUPIAlgorithm(transactionList, kValues);
                 st.evaluateTopKPerformance();
                 Map<Integer, Double> stTime = st.getRunTimeResults();
@@ -86,10 +97,12 @@ public class TopKPerformanceEvaluator {
 
                 if (unit.equals("runtime")) {
                     plotRunTimeComparisonChart(this.stpExecuteRunTimes.get(i), "STP-HUPI",
+                            this.stp3ExecuteRunTimes.get(i), "STP-HUI",
                             this.stExecuteRunTimes.get(i), "ST-HUPI",
                             title);
                 } else if (unit.equals("memory")) {
                     plotMemoryComparisonChart(this.stpExecuteMemory.get(i), "STP-HUPI",
+                            this.stp3ExecuteMemory.get(i), "STP-HUI",
                             this.stExecuteMemory.get(i), "ST-HUPI",
                             title);
                 } else {
@@ -135,13 +148,17 @@ public class TopKPerformanceEvaluator {
 
     private static void plotMemoryComparisonChart(
             Map<Integer, Double> memory1, String algorithm1,
-            Map<Integer, Double> memory2, String algorithm2, String title) {
+            Map<Integer, Double> memory2, String algorithm2,
+            Map<Integer, Double> memory3, String algorithm3, String title) {
 
         List<Integer> kValues1 = new ArrayList<>(memory1.keySet());
         List<Double> memories1 = new ArrayList<>(memory1.values());
 
         List<Integer> kValues2 = new ArrayList<>(memory2.keySet());
         List<Double> memories2 = new ArrayList<>(memory2.values());
+
+        List<Integer> kValues3 = new ArrayList<>(memory3.keySet());
+        List<Double> memories3 = new ArrayList<>(memory3.values());
 
         XYChart chart = new XYChartBuilder()
                 .width(800).height(600)
@@ -151,13 +168,15 @@ public class TopKPerformanceEvaluator {
 
         chart.addSeries(algorithm1, kValues1, memories1);
         chart.addSeries(algorithm2, kValues2, memories2);
+        chart.addSeries(algorithm3, kValues2, memories3);
 
         new SwingWrapper<>(chart).displayChart();
     }
 
     private static void plotRunTimeComparisonChart(
             Map<Integer, Double> runtime1, String algorithm1,
-            Map<Integer, Double> runtime2, String algorithm2, String title) {
+            Map<Integer, Double> runtime2, String algorithm2,
+            Map<Integer, Double> runtime3, String algorithm3, String title) {
 
         List<Integer> kValues1 = new ArrayList<>(runtime1.keySet());
         List<Double> runtimes1 = new ArrayList<>(runtime1.values());
@@ -165,14 +184,18 @@ public class TopKPerformanceEvaluator {
         List<Integer> kValues2 = new ArrayList<>(runtime2.keySet());
         List<Double> runtimes2 = new ArrayList<>(runtime2.values());
 
+        List<Integer> kValues3 = new ArrayList<>(runtime3.keySet());
+        List<Double> runtimes3 = new ArrayList<>(runtime3.values());
+
         XYChart chart = new XYChartBuilder()
                 .width(800).height(600)
                 .title(title)
-                .xAxisTitle("K-value").yAxisTitle("Runtime (ms)")
+                .xAxisTitle("K-value").yAxisTitle("Runtime (Sec.)")
                 .build();
 
         chart.addSeries(algorithm1, kValues1, runtimes1);
         chart.addSeries(algorithm2, kValues2, runtimes2);
+        chart.addSeries(algorithm3, kValues3, runtimes3);
 
         new SwingWrapper<>(chart).displayChart();
     }

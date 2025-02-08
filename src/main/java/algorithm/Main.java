@@ -7,10 +7,11 @@ public class Main {
         String filepath3 = "src/main/java/dataset/timestampDataset/ecommerce_timestamp.txt";
         String filepath4 = "src/main/java/dataset/timestampDataset/kosarak_timestamp.txt";
         String filepath5 = "src/main/java/dataset/timestampDataset/retail_timestamp.txt";
+        String filepath6 = "src/main/java/dataset/timestampDataset/test.txt";
 
         int[] kValues = {5, 10, 15, 20};
         int maxPer = 100;
-        TopKPerformanceEvaluator evaluator = new TopKPerformanceEvaluator(filepath3, kValues, maxPer);
+        TopKPerformanceEvaluator evaluator = new TopKPerformanceEvaluator(filepath4, kValues, maxPer);
         evaluator.run();
         evaluator.displayResults("runtime");
 

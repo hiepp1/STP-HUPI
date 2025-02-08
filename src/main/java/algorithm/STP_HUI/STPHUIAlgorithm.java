@@ -1,4 +1,4 @@
-package algorithm.ST_HUPI;
+package algorithm.STP_HUI;
 
 import algorithm.Itemset;
 import algorithm.Occurrence;
@@ -13,28 +13,31 @@ import java.util.stream.Collectors;
 @Data
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
-public class STHUPIAlgorithm {
-    // Fields for transactions and algorithm parameters.
+public class STPHUIAlgorithm {
+    // Fields for transactions, parameters, and tracking structures.
     private List<Transaction> transactions;
-    private int[] kValues;                   // Array of k-values to evaluate.
-    private int k;                           // Current k value.
-    private float minUtil;                   // Minimum expected utility threshold.
+    private int[] kValues;                   // Array of different k-values to test.
+    private int maxPer;                      // Maximum allowed period for an itemset.
+    private int k;                           // Current top-K value.
+    private float minUtil;                   // Minimum utility threshold (raw utility, not probability-based).
     private int dbUtil;                      // Total database utility.
-    private PriorityQueue<Itemset> topKItemsets; // Top-K candidate itemsets.
-    private Map<Integer, Float> twu;         // Transaction-weighted utility map.
-    private Map<Integer, Float> posUtil;     // Positive utility map.
-    private Map<Integer, Float> negUtil;     // Negative utility map.
-    private Map<String, Float> psuCache;     // Cache for PSU values (not using period, but kept for extension utility computations).
-    private final Set<String> processedPSU = new HashSet<>();
-    private final List<Transaction> originalTransactions;
-    private Set<String> topKSeen;            // Tracks already processed itemsets.
-    private Map<Integer, Double> runTimeResults = new LinkedHashMap<>();
-    private Map<Integer, Double> memoryResults = new LinkedHashMap<>();
+    private PriorityQueue<Itemset> topKItemsets;  // Priority queue to hold current top-K itemsets.
+    private Map<Integer, Integer> twu;         // Transaction-Weighted Utility map.
+    private Map<Integer, Integer> posUtil;     // Positive utility map.
+    private Map<Integer, Integer> negUtil;     // Negative utility map.
+    private Map<String, Integer> psuCache;     // Cache for PSU values.
+    private final Set<String> processedPSU = new HashSet<>(); // Set to avoid duplicate PSU computations.
+    private final List<Transaction> originalTransactions; // Original list of transactions.
+    private Set<String> topKSeen;            // Set to track already processed itemsets (canonical key).
+    private Map<Integer, Double> runTimeResults = new LinkedHashMap<>();  // Runtime results per k-value.
+    private Map<Integer, Double> memoryResults = new LinkedHashMap<>();   // Memory usage per k-value.
 
-    public STHUPIAlgorithm(List<Transaction> transactions, int[] kValues) {
+    // Constructor.
+    public STPHUIAlgorithm(List<Transaction> transactions, int[] kValues, int maxPer) {
         this.originalTransactions = new ArrayList<>(transactions);
         this.transactions = new ArrayList<>(transactions);
         this.kValues = kValues;
+        this.maxPer = maxPer;
         this.topKItemsets = new PriorityQueue<>(Comparator.comparing(Itemset::getExpectedUtility));
         this.twu = new HashMap<>();
         this.posUtil = new HashMap<>();
@@ -44,28 +47,30 @@ public class STHUPIAlgorithm {
     }
 
     // ---------- PRIU STRATEGIES ----------
-    private float calculatePRIU() {
-        return (float) transactions.stream()
-                .mapToDouble(transaction -> transaction.getItems().stream()
-                        .mapToDouble(item -> posUtil.getOrDefault(item, 0f))
+    private int calculatePRIU() {
+        return transactions.stream()
+                .mapToInt(transaction -> transaction.getItems().stream()
+                        .mapToInt(item -> posUtil.getOrDefault(item, 0))
                         .sum())
                 .max().orElse(0);
     }
-    private float calculatePLIU_E() {
-        return (float) transactions.stream()
-                .mapToDouble(transaction -> {
+
+    private int calculatePLIU_E() {
+        return transactions.stream()
+                .mapToInt(transaction -> {
                     List<Integer> sortedItems = transaction.getItems().stream()
-                            .sorted(Comparator.comparingDouble(item -> posUtil.getOrDefault(item, 0f)))
+                            .sorted(Comparator.comparingInt(item -> posUtil.getOrDefault(item, 0)))
                             .collect(Collectors.toList());
                     return sortedItems.stream().limit(2)
-                            .mapToDouble(item -> posUtil.getOrDefault(item, 0f))
+                            .mapToInt(item -> posUtil.getOrDefault(item, 0))
                             .sum();
                 }).max().orElse(0);
     }
-    private float calculatePLIU_LB() {
+
+    private int calculatePLIU_LB() {
         if (topKItemsets.isEmpty()) return 0;
-        return (float) topKItemsets.stream()
-                .mapToDouble(Itemset::getExpectedUtility)
+        return topKItemsets.stream()
+                .mapToInt(Itemset::getUtility)
                 .min().orElse(0);
     }
 
@@ -75,66 +80,75 @@ public class STHUPIAlgorithm {
                 .mapToInt(Transaction::getTransactionUtility)
                 .sum();
     }
-    private float calculateExpectedTransactionUtility(Transaction transaction) {
-        float probability = (float) transaction.getTransactionUtility() / dbUtil;
-        return probability * transaction.getTransactionUtility();
-    }
-    private float calculateExpectedDatabaseUtility() {
-        float expectedDatabaseUtility = 0f;
-        for (Transaction transaction : transactions) {
-            expectedDatabaseUtility += calculateExpectedTransactionUtility(transaction);
-        }
-        return expectedDatabaseUtility;
-    }
 
     // ---------- UTILITY & OCCURRENCE CALCULATIONS ----------
+    // Calculates raw utility of an itemset in a transaction.
     private int calculateUtility(Transaction transaction, List<Integer> itemset) {
         return itemset.stream().mapToInt(item -> {
             int index = transaction.getItems().indexOf(item);
             return index != -1 ? transaction.getUtilities().get(index) : 0;
         }).sum();
     }
+
+    // Finds occurrences of an itemset in transactions.
     private List<Occurrence> findOccurrences(List<Integer> itemset) {
         return transactions.stream()
                 .filter(transaction -> transaction.getItems().containsAll(itemset))
                 .map(transaction -> {
                     int utility = calculateUtility(transaction, itemset);
-                    float pos = Math.max(utility, 0);
-                    float neg = Math.min(utility, 0);
-                    float probability = (pos + Math.abs(neg)) > 0
-                            ? (pos + neg) / transaction.getTransactionUtility() : 0;
-                    float expUtil = (pos + neg) * probability;
-                    return new Occurrence(transaction.getId(), probability, utility, expUtil);
+                    return new Occurrence(transaction.getId(), 1.0f, utility, utility);
                 }).collect(Collectors.toList());
     }
 
-    private float getTotalExpectedUtility(List<Occurrence> occurrences) {
-        return (float) occurrences.stream().mapToDouble(Occurrence::getExpectedUtility).sum();
+    // Calculates the maximum period (largest gap between transaction IDs) for an itemset.
+    private int calculateMaxPeriod(List<Occurrence> occurrences) {
+        if (occurrences.size() < 2) return 0;
+        List<Integer> indices = occurrences.stream()
+                .map(Occurrence::getTransactionID)
+                .sorted()
+                .collect(Collectors.toList());
+        int maxPeriod = indices.get(0);
+        for (int i = 0; i < indices.size() - 1; i++) {
+            maxPeriod = Math.max(maxPeriod, indices.get(i + 1) - indices.get(i));
+        }
+        return maxPeriod;
     }
+
+    // Sum of raw utilities over all occurrences.
     private int getTotalUtility(List<Occurrence> occurrences) {
-        return occurrences.stream().mapToInt(Occurrence::getUtility).sum();
+        return occurrences.stream()
+                .mapToInt(Occurrence::getUtility)
+                .sum();
     }
-    private float getTotalPositiveUtility(List<Occurrence> occurrences) {
-        return (float) occurrences.stream().mapToDouble(o -> Math.max(o.getUtility(), 0)).sum();
+
+    private int getTotalPositiveUtility(List<Occurrence> occurrences) {
+        return occurrences.stream()
+                .mapToInt(o -> Math.max(o.getUtility(), 0))
+                .sum();
     }
-    private float getTotalNegativeUtility(List<Occurrence> occurrences) {
-        return (float) occurrences.stream().mapToDouble(o -> Math.min(o.getUtility(), 0)).sum();
+
+    private int getTotalNegativeUtility(List<Occurrence> occurrences) {
+        return occurrences.stream()
+                .mapToInt(o -> Math.min(o.getUtility(), 0))
+                .sum();
     }
 
     // ---------- PRUNING STRATEGY ----------
+    // Removes items whose TWU (raw utility based) is below the minUtil threshold.
     private void filterLowUtilityItems() {
         transactions.removeIf(transaction -> {
-            transaction.getItems().removeIf(item -> twu.getOrDefault(item, 0f) < minUtil);
+            transaction.getItems().removeIf(item -> twu.getOrDefault(item, 0) < minUtil);
             return transaction.getItems().isEmpty();
         });
     }
 
-    // ---------- PSU (Positive Sub-tree Utility) ----------
-    public float calculatePSU(List<Integer> prefix, int extensionItem) {
+    // ---------- PSU (Projected Sequential Utility) ----------
+    // Computes PSU for extending an itemset; using raw utilities.
+    public int calculatePSU(List<Integer> prefix, int extensionItem) {
         String key = prefix + "-" + extensionItem;
         if (processedPSU.contains(key)) return 0;
         processedPSU.add(key);
-        float maxPSU = 0;
+        int maxPSU = 0;
         for (Transaction transaction : transactions) {
             if (!transaction.getItems().containsAll(prefix) || !transaction.getItems().contains(extensionItem)) {
                 continue;
@@ -150,7 +164,7 @@ public class STHUPIAlgorithm {
                         int util = transaction.getUtilities().get(index);
                         return Math.max(util, 0);
                     }).sum();
-            float computedPSU = prefixUtility + adjustedExtensionUtility + remainingPositiveUtility;
+            int computedPSU = prefixUtility + adjustedExtensionUtility + remainingPositiveUtility;
             maxPSU = Math.max(maxPSU, computedPSU);
         }
         psuCache.put(key, maxPSU);
@@ -158,48 +172,49 @@ public class STHUPIAlgorithm {
     }
 
     // ---------- TWU COMPUTING ----------
+    // Computes the Transaction-Weighted Utility (TWU) using raw utilities.
     private void computeTWU() {
         for (Transaction transaction : transactions) {
-            float transactionUtility = (float) transaction.getTransactionUtility();
+            int transactionUtility = transaction.getTransactionUtility();
             for (int i = 0; i < transaction.getItems().size(); i++) {
                 int item = transaction.getItems().get(i);
-                float utility = transaction.getUtilities().get(i);
+                int utility = transaction.getUtilities().get(i);
                 if (utility >= 0) {
-                    posUtil.merge(item, utility, Float::sum);
+                    posUtil.merge(item, utility, Integer::sum);
                 } else {
-                    negUtil.merge(item, utility, Float::sum);
-                    transactionUtility += utility; // Adjust with negative utility.
+                    negUtil.merge(item, utility, Integer::sum);
+                    transactionUtility += utility;
                 }
             }
             for (int item : transaction.getItems()) {
-                twu.merge(item, transactionUtility, Float::sum);
+                twu.merge(item, transactionUtility, Integer::sum);
             }
         }
     }
 
     // ---------- ITEMSET GENERATION AND TREE GROWTH ----------
+    // Generates candidate itemsets by building a ShortTimePeriodTree.
     private List<Itemset> generateItemsets() {
         // Collect unique items from transactions.
         Set<Integer> uniqueItems = transactions.stream()
                 .flatMap(t -> t.getItems().stream())
                 .collect(Collectors.toSet());
-        // Sort unique items by TWEU descending.
+        // Sort unique items descending by TWEU.
         List<Integer> sortedUniqueItemsByTWEU = uniqueItems.stream()
-                .sorted((a, b) -> Float.compare(twu.getOrDefault(b, 0f), twu.getOrDefault(a, 0f)))
+                .sorted((a, b) -> Float.compare(twu.getOrDefault(b, 0), twu.getOrDefault(a, 0)))
                 .collect(Collectors.toList());
 
-        // Create a dummy tree root.
-        ShortTimeTree root = new ShortTimeTree(new ArrayList<>(), 0, 0, 0);
+        ShortTimePeriodTree root = new ShortTimePeriodTree(new ArrayList<>(), 0, 0, 0, 0);
 
-        // For each unique item, generate a single-item itemset and grow the tree.
+        // For each unique item, initialize a single-item itemset and grow the tree.
         for (Integer item : sortedUniqueItemsByTWEU) {
             List<Integer> currentItemset = new ArrayList<>();
             currentItemset.add(item);
             List<Occurrence> occurrences = findOccurrences(currentItemset);
-            if (occurrences.size() > 1) { // Only consider if occurs in more than one transaction.
-                ShortTimeTree node = new ShortTimeTree(new ArrayList<>(currentItemset), 0, 0, 0);
+            if (occurrences.size() > 1) {
+                ShortTimePeriodTree node = new ShortTimePeriodTree(new ArrayList<>(currentItemset), 0, 0, 0, 0);
                 root.children.put(item, node);
-                stTreeGrowth(node, occurrences);
+                stpTreeGrowth(node, occurrences);
             }
         }
 
@@ -208,22 +223,23 @@ public class STHUPIAlgorithm {
         return results;
     }
 
-    // Recursively grows the tree using probability-based expected utility.
-    private void stTreeGrowth(ShortTimeTree node, List<Occurrence> occurrences) {
-        // In this method, we ignore period; only expected utility matters.
-        float totalExpUtil = getTotalExpectedUtility(occurrences);
-        if (totalExpUtil < minUtil) return;
+    // Recursively grows the tree by extending the current itemset and applying pruning based on raw utility and period.
+    private void stpTreeGrowth(ShortTimePeriodTree node, List<Occurrence> occurrences) {
+        int maxPeriod = calculateMaxPeriod(occurrences);
+        if (maxPeriod > maxPer || maxPeriod == 0) return;
 
-        // Process current itemset.
+        float totalUtil = getTotalUtility(occurrences);
+        if (totalUtil < minUtil) return;
+
         processCurrentItemset(node.itemset, occurrences);
 
-        // Get extension candidates only from transactions containing the current itemset.
+        // Restrict candidate extensions to transactions that contain the current itemset.
         List<Integer> extensionItems = transactions.stream()
                 .filter(t -> t.getItems().containsAll(node.itemset))
                 .flatMap(t -> t.getItems().stream())
                 .filter(item -> !node.itemset.contains(item))
                 .distinct()
-                .sorted((a, b) -> Float.compare(twu.getOrDefault(b, 0f), twu.getOrDefault(a, 0f)))
+                .sorted((a, b) -> Float.compare(twu.getOrDefault(b, 0), twu.getOrDefault(a, 0)))
                 .collect(Collectors.toList());
 
         for (Integer item : extensionItems) {
@@ -233,31 +249,33 @@ public class STHUPIAlgorithm {
                 newItemset.add(item);
                 List<Occurrence> newOccurrences = findOccurrences(newItemset);
                 if (newOccurrences.size() < 2) continue;
-                float newTotalExpUtil = getTotalExpectedUtility(newOccurrences);
+                int newTotalExpUtil = getTotalUtility(newOccurrences);
                 if (newTotalExpUtil < minUtil) continue;
-                float newPosUtil = getTotalPositiveUtility(newOccurrences);
-                float newNegUtil = getTotalNegativeUtility(newOccurrences);
+                int newPosUtil = getTotalPositiveUtility(newOccurrences);
+                int newNegUtil = getTotalNegativeUtility(newOccurrences);
 
-                ShortTimeTree childNode = new ShortTimeTree(new ArrayList<>(newItemset),
-                        newTotalExpUtil, newPosUtil, newNegUtil);
+                ShortTimePeriodTree childNode = new ShortTimePeriodTree(new ArrayList<>(newItemset),
+                        newTotalExpUtil, newPosUtil, newNegUtil, calculateMaxPeriod(newOccurrences));
                 node.children.put(item, childNode);
 
-                stTreeGrowth(childNode, newOccurrences);
+                stpTreeGrowth(childNode, newOccurrences);
             }
         }
     }
 
-    // Processes the current itemset and adds it to the top-K list if it meets criteria.
+    // Processes the current itemset and adds it to the top-K list if it meets the criteria.
     private void processCurrentItemset(List<Integer> currentItemset, List<Occurrence> occurrences) {
         String canonicalKey = getItemsetKey(currentItemset);
         if (topKSeen.contains(canonicalKey)) return;
 
-        float totalExpUtil = getTotalExpectedUtility(occurrences);
+        int maxPeriod = calculateMaxPeriod(occurrences);
+        if (maxPeriod > maxPer || maxPeriod == 0) return;
+        float totalExpUtil = getTotalUtility(occurrences);
         int totalUtil = getTotalUtility(occurrences);
         if (totalUtil < 0) return;
 
-        // Create the itemset with expected utility computed with probability.
-        Itemset itemset = new Itemset(new ArrayList<>(currentItemset), totalUtil, totalExpUtil, 0);
+        // Here, expected utility equals the raw utility.
+        Itemset itemset = new Itemset(new ArrayList<>(currentItemset), totalUtil, totalExpUtil, maxPeriod);
         if (topKItemsets.size() < k) {
             topKItemsets.offer(itemset);
             topKSeen.add(canonicalKey);
@@ -270,21 +288,22 @@ public class STHUPIAlgorithm {
                 topKSeen.add(canonicalKey);
             }
         }
-        updateMinExpectedUtility();
+        updateMinUtility();
     }
 
-    // Updates the minimum utility threshold based on current top-K itemsets.
-    private void updateMinExpectedUtility() {
+    // Dynamically updates the minimum utility threshold based on the current top-K itemsets.
+    private void updateMinUtility() {
         if (topKItemsets.size() >= k) {
             List<Itemset> sortedItemsets = new ArrayList<>(topKItemsets);
             sortedItemsets.sort(Comparator.comparing(Itemset::getExpectedUtility).reversed());
-            float newMinUtil = sortedItemsets.get(sortedItemsets.size() - 1).getExpectedUtility();
+            int newMinUtil = sortedItemsets.get(sortedItemsets.size() - 1).getUtility();
             float priu = calculatePRIU() * 0.3f;
             float pliue = calculatePLIU_E() * 0.3f;
-            float pliulb = calculatePLIU_LB();
+            int pliulb = calculatePLIU_LB();
             float dynamicThreshold = (newMinUtil * 0.4f) + (Math.min(priu, Math.min(pliue, pliulb)) * 0.6f);
             if (dynamicThreshold > minUtil * 1.1f) {
                 minUtil = dynamicThreshold;
+                System.out.println("Updated minExpectedUtility: " + minUtil);
             }
         }
     }
@@ -294,20 +313,22 @@ public class STHUPIAlgorithm {
     private List<Integer> getCanonicalOrder(List<Integer> items) {
         return items.stream().sorted().collect(Collectors.toList());
     }
-    // Returns a string key for an itemset (its canonical order as a string).
+
+    // Returns a canonical key (string) for the itemset.
     private String getItemsetKey(List<Integer> items) {
         return getCanonicalOrder(items).toString();
     }
 
     // ---------- RUN & EVALUATION METHODS ----------
-    // Runs the algorithm for each k-value and measures runtime and memory usage.
+    // Evaluates top-K performance (runtime and memory usage) for each k-value.
     public void evaluateTopKPerformance() {
         List<Itemset> copyFinalResults = new ArrayList<>();
         dbUtil = calculateDatabaseUtility();
-        float expectedDatabaseUtility = calculateExpectedDatabaseUtility();
-        float globalMinUtil = expectedDatabaseUtility * 0.001f;  // Shared min utility
+        float globalMinUtil = dbUtil * 0.001f;  // Shared min utility
         float minUtilLowerBound = globalMinUtil * 0.00001f;
 
+        System.out.println("Database Utility: " + dbUtil);
+        System.out.println("Minimum Utility: " + globalMinUtil);
 
         for (int kValue : kValues) {
             k = kValue;
@@ -315,6 +336,7 @@ public class STHUPIAlgorithm {
             List<Itemset> finalResults = new ArrayList<>();
             System.out.println("\nRunning for Top-" + k + " Itemsets...");
 
+            // Runtime measurement.
             long startTime = System.nanoTime();
             Runtime runtime = Runtime.getRuntime();
             runtime.gc();
@@ -355,7 +377,7 @@ public class STHUPIAlgorithm {
         }
     }
 
-    // Resets algorithm state to the original transactions and recomputes TWEU.
+    // Resets algorithm state and recomputes TWEU.
     private void reset() {
         topKItemsets.clear();
         topKSeen.clear();
