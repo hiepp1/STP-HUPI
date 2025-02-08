@@ -10,13 +10,7 @@ class ShortTimeTree {
     float expectedUtility;
     float posUtility;
     float negUtility;
-    Map<Integer, ShortTimeTree> children; // Tree structure
-
-    public ShortTimeTree(List<Integer> itemset, float expectedUtility) {
-        this.itemset = new ArrayList<>(itemset);
-        this.expectedUtility = expectedUtility;
-        this.children = new HashMap<>();
-    }
+    Map<Integer, ShortTimeTree> children;
 
     public ShortTimeTree(List<Integer> itemset, float expectedUtility, float posUtility, float negUtility) {
         this.itemset = new ArrayList<>(itemset);

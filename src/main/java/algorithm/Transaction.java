@@ -10,16 +10,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Transaction {
-    int id;
-    List<Integer> items;
-    List<Integer> utilities;
-    int transactionUtility;
-    long timestamp;
-
-    public Transaction(Transaction other) {
-        this.id = other.getId();
-        this.items = new ArrayList<>(other.getItems());
-        this.utilities = new ArrayList<>(other.getUtilities());
-        this.transactionUtility = other.getTransactionUtility();
-    }
+    private int id;
+    private List<Integer> items;
+    private List<Integer> utilities;
+    private int transactionUtility;
+    private long timestamp;
 }
