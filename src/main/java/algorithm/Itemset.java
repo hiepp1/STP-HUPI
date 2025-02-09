@@ -9,20 +9,16 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Itemset implements Comparable<Itemset> {
-    List<Integer> items;
-    int utility;
-    float expectedUtility;
-    int maxPer;
-
-    @Override
-    public int compareTo(Itemset o) {
-        return Float.compare(this.expectedUtility, o.getExpectedUtility());
-    }
+public class Itemset {
+    private List<Integer> items;
+    private int utility;
+    private float expectedUtility;
+    private int maxPer;
 
     @Override
     public String toString() {
         return "Itemset: " + this.items +
+                ", Raw Utility: " + this.utility +
                 ", Expected Utility: " + this.expectedUtility +
                 ", Max Period: " + this.maxPer;
     }

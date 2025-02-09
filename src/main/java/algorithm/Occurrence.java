@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Occurrence {
-    int transactionID;
-    float probability;
-    int utility;
-    float expectedUtility;
+    private int transactionID;
+    private float probability;
+    private int utility;
+    private float expectedUtility;
 }

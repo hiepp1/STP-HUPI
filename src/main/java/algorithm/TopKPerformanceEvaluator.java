@@ -1,8 +1,8 @@
 package algorithm;
 
-import algorithm.STP_HUI.STPHUIAlgorithm;
-import algorithm.STP_HUPI.STPHUPIAlgorithm;
-import algorithm.ST_HUPI.STHUPIAlgorithm;
+import algorithm.STP_HUI.StpHuiAlgorithm;
+import algorithm.STP_HUPI.StpHupiAlgorithm;
+import algorithm.ST_HUPI.StHupiAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,74 +12,43 @@ import org.knowm.xchart.XYChartBuilder;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class TopKPerformanceEvaluator {
-    private List<Map<Integer, Double>> stpExecuteRunTimes = new ArrayList<>();
-    private List<Map<Integer, Double>> stExecuteRunTimes = new ArrayList<>();
-    private List<Map<Integer, Double>> stp3ExecuteRunTimes = new ArrayList<>();
-    private List<Map<Integer, Double>> stpExecuteMemory = new ArrayList<>();
-    private List<Map<Integer, Double>> stExecuteMemory = new ArrayList<>();
-    private List<Map<Integer, Double>> stp3ExecuteMemory = new ArrayList<>();
-
+    private Map<Integer, Double> runTimes1 = new HashMap<>();
+    private Map<Integer, Double> runTimes2 = new HashMap<>();
+    private Map<Integer, Double> runTimes3 = new HashMap<>();
+    private Map<Integer, Double> memories1 = new HashMap<>();
+    private Map<Integer, Double> memories2 = new HashMap<>();
+    private Map<Integer, Double> memories3 = new HashMap<>();
 
     private List<String> timeSeries = new ArrayList<>();
     private String filePath;
     private List<List<Transaction>> transactions;
-    private int[] kValues;
+    private int k;
     private int maxPer;
 
-    public TopKPerformanceEvaluator(String filePath, int[] kValues, int maxPer) {
+    public TopKPerformanceEvaluator(String filePath, int k, int maxPer) {
         this.filePath = filePath;
-        this.kValues = kValues;
+        this.k = k;
         this.maxPer = maxPer;
     }
 
-    private void evaluate() {
+    public void run() {
         try {
             this.transactions = DatasetReader.readDataset(this.filePath); // Read dataset
 
             int i = 1;
             for (List<Transaction> transactionList : this.transactions) {
                 System.out.println("\n-------------------------------------------- Processing transaction list " + i + "--------------------------------------------\n");
-                String startTimeDate = getLocalDateTime(transactionList.get(0).getTimestamp());
-                String endTimeDate = getLocalDateTime(transactionList.get(transactionList.size() - 1).getTimestamp());
-                String title = "From " + startTimeDate + " to " + endTimeDate;
 
-                // Short Time Period High Utility Probabilities Itemsets
-                System.out.println("Running STP-HUPI algorithm...");
-                STPHUPIAlgorithm stp = new STPHUPIAlgorithm(transactionList, kValues, maxPer);
-                stp.evaluateTopKPerformance();
-                Map<Integer, Double> stpTime = stp.getRunTimeResults();
-                Map<Integer, Double> stpMemory = stp.getMemoryResults();
-                stpExecuteRunTimes.add(stpTime);
-                stpExecuteMemory.add(stpMemory);
+                this.runStpHUPI(transactionList, i); // [1] Short Time Period High Utility Probabilities Itemsets
+                this.runStpHUI(transactionList, i); // [2] Short Time Period High Utility Itemsets
+                this.runStHUPI(transactionList, i); // [3] Short Time High Utility Probabilities Itemsets
 
-                // Short Time Period High Utility Itemsets
-                System.out.println("\nRunning STP-HUI algorithm...");
-                STPHUIAlgorithm stp3 = new STPHUIAlgorithm(transactionList, kValues, maxPer);
-                stp3.evaluateTopKPerformance();
-                Map<Integer, Double> stp3Time = stp3.getRunTimeResults();
-                Map<Integer, Double> stp3Memory = stp3.getMemoryResults();
-                stp3ExecuteRunTimes.add(stp3Time);
-                stp3ExecuteMemory.add(stp3Memory);
-
-                // Short Time High Utility Probabilities Itemsets
-                System.out.println("\nRunning ST-HUIP algorithm...");
-                STHUPIAlgorithm st = new STHUPIAlgorithm(transactionList, kValues);
-                st.evaluateTopKPerformance();
-                Map<Integer, Double> stTime = st.getRunTimeResults();
-                Map<Integer, Double> stMemory = st.getMemoryResults();
-                stExecuteRunTimes.add(stTime);
-                stExecuteMemory.add(stMemory);
-
-                timeSeries.add(title);
                 i += 1;
             }
         } catch (IOException e) {
@@ -87,44 +56,46 @@ public class TopKPerformanceEvaluator {
         }
     }
 
-    public void displayResults(String unit) {
-        try {
-            String datasetTitle = extractDatasetTitle(this.filePath);
-            int i = 0;
-
-            for (String time : timeSeries) {
-                String title = "Short Time Dataset 1: " + datasetTitle + " - " + time;
-
-                if (unit.equals("runtime")) {
-                    plotRunTimeComparisonChart(this.stpExecuteRunTimes.get(i), "STP-HUPI",
-                            this.stp3ExecuteRunTimes.get(i), "STP-HUI",
-                            this.stExecuteRunTimes.get(i), "ST-HUPI",
-                            title);
-                } else if (unit.equals("memory")) {
-                    plotMemoryComparisonChart(this.stpExecuteMemory.get(i), "STP-HUPI",
-                            this.stp3ExecuteMemory.get(i), "STP-HUI",
-                            this.stExecuteMemory.get(i), "ST-HUPI",
-                            title);
-                } else {
-                    System.out.println("Unrecognized unit: " + unit);
-                    return;
-                }
-                i += 1;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private void runStpHUPI(List<Transaction> transactions, int week) {
+        System.out.println("Running [1] Short Time Period High Utility Probabilities Itemsets algorithm with k = " + this.k + "...");
+        List<Transaction> copyTransactions = new ArrayList<>(transactions);
+        StpHupiAlgorithm stpHUPI = new StpHupiAlgorithm(copyTransactions, k, maxPer);
+        stpHUPI.evaluateTopKPerformance();
+        this.runTimes1.put(week, stpHUPI.getRunTime());
+        this.memories1.put(week, stpHUPI.getMemoryUsed());
     }
 
-    public void run() {
-        this.evaluate();
+    private void runStpHUI(List<Transaction> transactions, int week) {
+        System.out.println("\nRunning [2] Short Time Period High Utility Itemsets algorithm with k = " + this.k + "...");
+        List<Transaction> copyTransactions = new ArrayList<>(transactions);
+        StpHuiAlgorithm stpHUI = new StpHuiAlgorithm(copyTransactions, k, maxPer);
+        stpHUI.evaluateTopKPerformance();
+        this.runTimes2.put(week, stpHUI.getRunTime());
+        this.memories2.put(week, stpHUI.getMemoryUsed());
     }
 
-    private static String getLocalDateTime(long timestamp) {
-        Instant instant = Instant.ofEpochSecond(timestamp);
-        LocalDateTime dateTime = LocalDateTime.ofInstant(instant, TimeZone.getDefault().toZoneId());
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
-        return dateTime.format(formatter);
+    private void runStHUPI(List<Transaction> transactions, int week) {
+        System.out.println("\nRunning [3] Short Time High Utility Probabilities Itemsets algorithm with k = " + this.k + "...");
+        List<Transaction> copyTransactions = new ArrayList<>(transactions);
+        StHupiAlgorithm stHUPI = new StHupiAlgorithm(copyTransactions, k);
+        stHUPI.evaluateTopKPerformance();
+        this.runTimes3.put(week, stHUPI.getRunTime());
+        this.memories3.put(week, stHUPI.getMemoryUsed());
+    }
+
+    public void displayResults() {
+
+        String datasetTitle = extractDatasetTitle(this.filePath);
+
+        plotRunTimeComparisonChart(this.runTimes1, "STP-HUPI",
+                        this.runTimes2, "STP-HUI",
+                        this.runTimes3, "ST-HUPI",
+                        datasetTitle);
+
+        plotMemoryComparisonChart(this.memories1, "STP-HUPI",
+                        this.memories2, "STP-HUI",
+                        this.memories3, "ST-HUPI",
+                        datasetTitle);
     }
 
     private static String extractDatasetTitle(String filepath) {
@@ -163,12 +134,12 @@ public class TopKPerformanceEvaluator {
         XYChart chart = new XYChartBuilder()
                 .width(800).height(600)
                 .title(title)
-                .xAxisTitle("K-value").yAxisTitle("Memory (MB)")
+                .xAxisTitle("Week").yAxisTitle("Memory (MB)")
                 .build();
 
         chart.addSeries(algorithm1, kValues1, memories1);
         chart.addSeries(algorithm2, kValues2, memories2);
-        chart.addSeries(algorithm3, kValues2, memories3);
+        chart.addSeries(algorithm3, kValues3, memories3);
 
         new SwingWrapper<>(chart).displayChart();
     }
@@ -176,7 +147,8 @@ public class TopKPerformanceEvaluator {
     private static void plotRunTimeComparisonChart(
             Map<Integer, Double> runtime1, String algorithm1,
             Map<Integer, Double> runtime2, String algorithm2,
-            Map<Integer, Double> runtime3, String algorithm3, String title) {
+            Map<Integer, Double> runtime3, String algorithm3,
+            String title) {
 
         List<Integer> kValues1 = new ArrayList<>(runtime1.keySet());
         List<Double> runtimes1 = new ArrayList<>(runtime1.values());
@@ -190,7 +162,7 @@ public class TopKPerformanceEvaluator {
         XYChart chart = new XYChartBuilder()
                 .width(800).height(600)
                 .title(title)
-                .xAxisTitle("K-value").yAxisTitle("Runtime (Sec.)")
+                .xAxisTitle("Week").yAxisTitle("Runtime (Sec.)")
                 .build();
 
         chart.addSeries(algorithm1, kValues1, runtimes1);

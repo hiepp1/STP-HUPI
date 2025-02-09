@@ -2,18 +2,15 @@ package algorithm;
 
 public class Main {
     public static void main(String[] args) {
-        String filepath1 = "src/main/java/dataset/timestampDataset/foodmart_timestamp.txt";
-        String filepath2 = "src/main/java/dataset/timestampDataset/mushroom_timestamp.txt";
-        String filepath3 = "src/main/java/dataset/timestampDataset/ecommerce_timestamp.txt";
-        String filepath4 = "src/main/java/dataset/timestampDataset/kosarak_timestamp.txt";
-        String filepath5 = "src/main/java/dataset/timestampDataset/retail_timestamp.txt";
-        String filepath6 = "src/main/java/dataset/timestampDataset/test.txt";
+        String filepath1 = "src/main/java/dataset/pumsp.txt";
+        String filepath2 = "src/main/java/dataset/mushroom.txt";
+        String filepath3 = "src/main/java/dataset/ecommerce.txt"; //too many transactions per week
+        String filepath4 = "src/main/java/dataset/retail.txt"; //too many transactions per week
 
-        int[] kValues = {5, 10, 15, 20};
-        int maxPer = 100;
-        TopKPerformanceEvaluator evaluator = new TopKPerformanceEvaluator(filepath4, kValues, maxPer);
+        int k = 20;
+        int maxPer = 20;
+        TopKPerformanceEvaluator evaluator = new TopKPerformanceEvaluator(filepath4, k, maxPer);
         evaluator.run();
-        evaluator.displayResults("runtime");
-
+        evaluator.displayResults();
     }
 }
