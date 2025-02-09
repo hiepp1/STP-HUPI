@@ -9,7 +9,7 @@ public class Main {
 
         int k = 20;
         int maxPer = 20;
-        TopKPerformanceEvaluator evaluator = new TopKPerformanceEvaluator(filepath4, k, maxPer);
+        TopKPerformanceEvaluator evaluator = new TopKPerformanceEvaluator(filepath1, k, maxPer);
         evaluator.run();
         evaluator.displayResults();
     }
