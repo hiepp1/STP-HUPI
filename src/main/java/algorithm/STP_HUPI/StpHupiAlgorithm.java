@@ -21,8 +21,7 @@ public class StpHupiAlgorithm {
     private float minUtil;                       // Minimum expected utility threshold.
     private PriorityQueue<Itemset> topKItemsets; // Priority queue to maintain top-K itemsets.
     private Map<Integer, Float> twu;             // Transaction-weighted utility map.
-    private Map<Integer, Float> posUtil;         // Positive utility map.
-    private Map<Integer, Float> negUtil;         // Negative utility map.
+    private Map<Integer, Float> pwtu;         // Positive Transaction-weighted utility map.
     private final Set<String> processedPSU = new HashSet<>(); // Set to avoid duplicate PSU computations.
     private Set<String> topKSeen;                // Set to track processed (canonical) itemset keys.
     private double runTime; // Runtime result per k-value.
@@ -35,8 +34,7 @@ public class StpHupiAlgorithm {
         this.maxPer = maxPer;
         this.topKItemsets = new PriorityQueue<>(Comparator.comparing(Itemset::getExpectedUtility));
         this.twu = new HashMap<>();
-        this.posUtil = new HashMap<>();
-        this.negUtil = new HashMap<>();
+        this.pwtu = new HashMap<>();
         this.topKSeen = new HashSet<>();
     }
 
@@ -49,7 +47,7 @@ public class StpHupiAlgorithm {
     private float calculatePRIU() {
         return (float) this.transactions.stream()
                 .mapToDouble(transaction -> transaction.getItems().stream()
-                        .mapToDouble(item -> this.posUtil.getOrDefault(item, 0f))
+                        .mapToDouble(item -> this.pwtu.getOrDefault(item, 0f))
                         .sum())
                 .max().orElse(0);
     }
@@ -62,10 +60,10 @@ public class StpHupiAlgorithm {
         return (float) this.transactions.stream()
                 .mapToDouble(transaction -> {
                     List<Integer> sortedItems = transaction.getItems().stream()
-                            .sorted(Comparator.comparingDouble(item -> this.posUtil.getOrDefault(item, 0f)))
+                            .sorted(Comparator.comparingDouble(item -> this.pwtu.getOrDefault(item, 0f)))
                             .collect(Collectors.toList());
                     return sortedItems.stream().limit(2)
-                            .mapToDouble(item -> this.posUtil.getOrDefault(item, 0f))
+                            .mapToDouble(item -> this.pwtu.getOrDefault(item, 0f))
                             .sum();
                 }).max().orElse(0);
     }
@@ -248,21 +246,18 @@ public class StpHupiAlgorithm {
      */
     private void computeTWU() {
         for (Transaction transaction : transactions) {
-            float transactionUtility = (float) transaction.getTransactionUtility();
+            float twu = (float) transaction.getTransactionUtility();
 
             for (int i = 0; i < transaction.getItems().size(); i++) {
                 int item = transaction.getItems().get(i);
                 float utility = transaction.getUtilities().get(i);
 
-                if (utility >= 0) posUtil.merge(item, utility, Float::sum);
-                else {
-                    negUtil.merge(item, utility, Float::sum);
-                    transactionUtility += utility; // Adjust transaction utility with negative values.
-                }
+                if (utility >= 0) pwtu.merge(item, utility, Float::sum);
+                else twu += utility; // Adjust transaction utility with negative values.
             }
 
             for (int item : transaction.getItems()) {
-                twu.merge(item, transactionUtility, Float::sum);
+                this.twu.merge(item, twu, Float::sum);
             }
         }
     }
@@ -286,7 +281,7 @@ public class StpHupiAlgorithm {
                 .sorted((a, b) -> Float.compare(this.twu.getOrDefault(b, 0f), this.twu.getOrDefault(a, 0f)))
                 .collect(Collectors.toList());
 
-        StpHupiTree root = new StpHupiTree(new ArrayList<>(), 0, 0f, 0f, 0f, 0);
+        StpHupiTree root = new StpHupiTree(new ArrayList<>(), 0, 0f, 0);
 
         // For each unique item, initialize a single-item itemset and grow the tree.
         for (Integer item : sortedUniqueItemsByTWU) {
@@ -301,7 +296,7 @@ public class StpHupiAlgorithm {
                 float expectedUtility = this.getTotalExpectedUtility(occurrences);
 //                if (expectedUtility < 0) continue;
 
-                StpHupiTree node = new StpHupiTree(currentItemset, utility, expectedUtility, 0, 0, maxPeriod);
+                StpHupiTree node = new StpHupiTree(currentItemset, utility, expectedUtility, maxPeriod);
                 Map<Integer, StpHupiTree> children = node.getChildren();
                 children.put(item, node);
                 root.setChildren(children);
@@ -352,12 +347,8 @@ public class StpHupiAlgorithm {
                 float newTotalExpUtil = this.getTotalExpectedUtility(newOccurrences);
                 if (newTotalExpUtil < this.minUtil) continue;
 
-                float newPosUtility = this.getTotalPositiveUtility(newOccurrences);
-                float newNegUtility = this.getTotalNegativeUtility(newOccurrences);
-
                 StpHupiTree childNode = new StpHupiTree(new ArrayList<>(newItemset),
-                        newUtility, newTotalExpUtil, newPosUtility, newNegUtility, newMaxPeriod);
-//                node.children.put(item, childNode);
+                        newUtility, newTotalExpUtil, newMaxPeriod);
 
                 Map<Integer, StpHupiTree> children = childNode.getChildren();
                 children.put(item, childNode);
@@ -375,11 +366,6 @@ public class StpHupiAlgorithm {
         List<Integer> currentItemset = node.getItemset();
         String canonicalKey = this.getItemsetKey(currentItemset);
         if (this.topKSeen.contains(canonicalKey)) return;
-
-//        int maxPeriod = this.calculateMaxPeriod(occurrences);
-//        if (maxPeriod > this.maxPer || maxPeriod == 0) return;
-
-
         Itemset itemset = new Itemset(currentItemset, node.getUtility(), node.getExpectedUtility(), node.getMaxPeriod());
 
         if (this.topKItemsets.size() < this.k) {
@@ -415,7 +401,7 @@ public class StpHupiAlgorithm {
 
             if (dynamicThreshold > this.minUtil * 1.1f) {
                 this.minUtil = dynamicThreshold;
-                System.out.println("Updated MinUtil: " + this.minUtil);
+//                System.out.println("Updated MinUtil: " + this.minUtil);
             }
         }
     }
@@ -445,7 +431,8 @@ public class StpHupiAlgorithm {
     public void evaluateTopKPerformance() {
         this.computeTWU();
         this.filterLowUtilityItems();
-        System.out.println("Initial Minimum Utility: " + minUtil);
+//        System.out.println("Database Utility: " + this.transactions.stream().mapToInt(Transaction::getTransactionUtility).sum());
+//        System.out.println("Initial Minimum Utility: " + minUtil);
 
         // Measure runtime and memory for the candidate generation process.
         long startTime = System.nanoTime();
@@ -460,8 +447,8 @@ public class StpHupiAlgorithm {
         this.memoryUsed = (memoryAfter - memoryBefore) / (1024.0 * 1024.0);
 
 
-        System.out.printf("Candidate Generation Execution Time: %.2f s%n", this.runTime);
-        System.out.printf("Candidate Generation Memory Usage: %.2f MB%n", this.memoryUsed);
+        System.out.printf("Execution Time: %.2f s%n", this.runTime);
+        System.out.printf("Memory Usage: %.2f MB%n", this.memoryUsed);
         System.out.println("\n🔹 Final Top-" + this.k + " Itemsets:");
 
         if (allCandidates.isEmpty()) {

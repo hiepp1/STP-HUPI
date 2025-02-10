@@ -15,15 +15,11 @@ import java.util.Map;
 public class StpHuiTree {
     private List<Integer> itemset;
     private int utility;
-    private int posUtility;
-    private int negUtility;
     private int maxPeriod;
     private Map<Integer, StpHuiTree> children;
 
-    public StpHuiTree(List<Integer> itemset, int utility, int posUtility, int negUtility, int maxPeriod) {
+    public StpHuiTree(List<Integer> itemset, int utility, int maxPeriod) {
         this.itemset = itemset;
-        this.posUtility = posUtility;
-        this.negUtility = negUtility;
         this.utility = utility;
         this.maxPeriod = maxPeriod;
         this.children = new HashMap<>();

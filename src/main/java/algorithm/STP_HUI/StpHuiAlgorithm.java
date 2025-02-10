@@ -21,8 +21,7 @@ public class StpHuiAlgorithm {
     private float minUtil;                       // Minimum utility threshold.
     private PriorityQueue<Itemset> topKItemsets; // Priority queue to maintain top-K itemsets.
     private Map<Integer, Integer> twu;             // Transaction-weighted utility map.
-    private Map<Integer, Integer> posUtil;         // Positive utility map.
-    private Map<Integer, Integer> negUtil;         // Negative utility map.
+    private Map<Integer, Integer> pwtu;         // Positive Transaction-weighted utility map.
     private final Set<String> processedPSU = new HashSet<>(); // Set to avoid duplicate PSU computations.
     private Set<String> topKSeen;                // Set to track processed (canonical) itemset keys.
     private double runTime; // Runtime result per k-value.
@@ -35,8 +34,7 @@ public class StpHuiAlgorithm {
         this.maxPer = maxPer;
         this.topKItemsets = new PriorityQueue<>(Comparator.comparing(Itemset::getUtility));
         this.twu = new HashMap<>();
-        this.posUtil = new HashMap<>();
-        this.negUtil = new HashMap<>();
+        this.pwtu = new HashMap<>();
         this.topKSeen = new HashSet<>();
     }
 
@@ -49,7 +47,7 @@ public class StpHuiAlgorithm {
     private float calculatePRIU() {
         return (float) this.transactions.stream()
                 .mapToDouble(transaction -> transaction.getItems().stream()
-                        .mapToDouble(item -> this.posUtil.getOrDefault(item, 0))
+                        .mapToDouble(item -> this.pwtu.getOrDefault(item, 0))
                         .sum())
                 .max().orElse(0);
     }
@@ -62,10 +60,10 @@ public class StpHuiAlgorithm {
         return (float) this.transactions.stream()
                 .mapToDouble(transaction -> {
                     List<Integer> sortedItems = transaction.getItems().stream()
-                            .sorted(Comparator.comparingDouble(item -> this.posUtil.getOrDefault(item, 0)))
+                            .sorted(Comparator.comparingDouble(item -> this.pwtu.getOrDefault(item, 0)))
                             .collect(Collectors.toList());
                     return sortedItems.stream().limit(2)
-                            .mapToDouble(item -> this.posUtil.getOrDefault(item, 0))
+                            .mapToDouble(item -> this.pwtu.getOrDefault(item, 0))
                             .sum();
                 }).max().orElse(0);
     }
@@ -79,30 +77,6 @@ public class StpHuiAlgorithm {
         return (float) this.topKItemsets.stream()
                 .mapToDouble(Itemset::getUtility)
                 .min().orElse(0);
-    }
-
-    // ------------- TRANSACTION UTILITY -------------//
-
-    /**
-     * Calculates the positive transaction utility (PTU) for a given transaction.
-     */
-    private int calculatePTU(Transaction transaction) {
-        return transaction.getItems().stream()
-                .mapToInt(item -> {
-                    int idx = transaction.getItems().indexOf(item);
-                    return idx != -1 ? Math.max(transaction.getUtilities().get(idx), 0) : 0;
-                }).sum();
-    }
-
-    /**
-     * Calculates the absolute negative transaction utility (ANTU) for a given transaction.
-     */
-    private int calculateANTU(Transaction transaction) {
-        return transaction.getItems().stream()
-                .mapToInt(item -> {
-                    int idx = transaction.getItems().indexOf(item);
-                    return idx != -1 ? -Math.min(transaction.getUtilities().get(idx), 0) : 0;
-                }).sum();
     }
 
     // ------------- UTILITY & OCCURRENCE CALCULATIONS -------------//
@@ -127,10 +101,6 @@ public class StpHuiAlgorithm {
                 .filter(transaction -> transaction.getItems().containsAll(itemset))
                 .map(transaction -> {
                     int utility = this.calculateItemsetUtility(transaction, itemset);
-
-
-
-
                     return new Occurrence(transaction.getId(), 1f, utility, 1f);
                 }).collect(Collectors.toList());
     }
@@ -156,20 +126,6 @@ public class StpHuiAlgorithm {
      */
     private int getTotalUtility(List<Occurrence> occurrences) {
         return occurrences.stream().mapToInt(Occurrence::getUtility).sum();
-    }
-
-    /**
-     * Sums the positive utilities for all occurrences.
-     */
-    private int getTotalPositiveUtility(List<Occurrence> occurrences) {
-        return occurrences.stream().mapToInt(o -> Math.max(o.getUtility(), 0)).sum();
-    }
-
-    /**
-     * Sums the negative utilities for all occurrences.
-     */
-    private int getTotalNegativeUtility(List<Occurrence> occurrences) {
-        return occurrences.stream().mapToInt(o -> Math.min(o.getUtility(), 0)).sum();
     }
 
     // ------------- PRUNING STRATEGY -------------//
@@ -230,21 +186,20 @@ public class StpHuiAlgorithm {
      */
     private void computeTWU() {
         for (Transaction transaction : transactions) {
-            int transactionUtility = transaction.getTransactionUtility();
+            int twu = transaction.getTransactionUtility();
 
             for (int i = 0; i < transaction.getItems().size(); i++) {
                 int item = transaction.getItems().get(i);
                 int utility = transaction.getUtilities().get(i);
 
-                if (utility >= 0) posUtil.merge(item, utility, Integer::sum);
+                if (utility >= 0) pwtu.merge(item, utility, Integer::sum);
                 else {
-                    negUtil.merge(item, utility, Integer::sum);
-                    transactionUtility += utility; // Adjust transaction utility with negative values.
+                    twu += utility; // Adjust transaction utility with negative values.
                 }
             }
 
             for (int item : transaction.getItems()) {
-                twu.merge(item, transactionUtility, Integer::sum);
+                this.twu.merge(item, twu, Integer::sum);
             }
         }
     }
@@ -268,7 +223,7 @@ public class StpHuiAlgorithm {
                 .sorted((a, b) -> Integer.compare(this.twu.getOrDefault(b, 0), this.twu.getOrDefault(a, 0)))
                 .collect(Collectors.toList());
 
-        StpHuiTree root = new StpHuiTree(new ArrayList<>(), 0, 0, 0, 0);
+        StpHuiTree root = new StpHuiTree(new ArrayList<>(), 0, 0);
 
         // For each unique item, initialize a single-item itemset and grow the tree.
         for (Integer item : sortedUniqueItemsByTWU) {
@@ -280,13 +235,11 @@ public class StpHuiAlgorithm {
                 if (maxPeriod > this.maxPer) continue;
                 int utility = this.getTotalUtility(occurrences);
                 if (utility < 0) continue;
-                int posUtility = this.getTotalPositiveUtility(occurrences);
-                int negUtility = this.getTotalNegativeUtility(occurrences);
 
-                StpHuiTree node = new StpHuiTree(currentItemset, utility, posUtility, negUtility, maxPeriod);
+                StpHuiTree node = new StpHuiTree(currentItemset, utility, maxPeriod);
                 Map<Integer, StpHuiTree> children = node.getChildren();
                 children.put(item, node);
-                node.setChildren(children);
+                root.setChildren(children);
                 this.stpHuiTreeGrowth(node);
             }
         }
@@ -334,11 +287,8 @@ public class StpHuiAlgorithm {
                 int newTotalUtil = this.getTotalUtility(newOccurrences);
                 if (newTotalUtil < this.minUtil) continue;
 
-                int newPosUtility = this.getTotalPositiveUtility(newOccurrences);
-                int newNegUtility = this.getTotalNegativeUtility(newOccurrences);
-
                 StpHuiTree childNode = new StpHuiTree(
-                        new ArrayList<>(newItemset), newTotalUtil, newPosUtility, newNegUtility, newMaxPeriod);
+                        new ArrayList<>(newItemset), newTotalUtil, newMaxPeriod);
                 Map<Integer, StpHuiTree> children = node.getChildren();
                 children.put(item, node);
                 node.setChildren(children);
@@ -392,7 +342,7 @@ public class StpHuiAlgorithm {
 
             if (dynamicThreshold > this.minUtil * 1.1f) {
                 this.minUtil = dynamicThreshold;
-                System.out.println("Updated MinUtil: " + this.minUtil);
+//                System.out.println("Updated MinUtil: " + this.minUtil);
             }
         }
     }
@@ -423,7 +373,7 @@ public class StpHuiAlgorithm {
     public void evaluateTopKPerformance() {
         this.computeTWU();
         this.filterLowUtilityItems();
-        System.out.println("Initial Minimum Utility: " + minUtil);
+//        System.out.println("Initial Minimum Utility: " + minUtil);
 
         // Measure runtime and memory for the candidate generation process.
         long startTime = System.nanoTime();
@@ -438,8 +388,8 @@ public class StpHuiAlgorithm {
         this.memoryUsed = (memoryAfter - memoryBefore) / (1024.0 * 1024.0);
 
 
-        System.out.printf("Candidate Generation Execution Time: %.2f s%n", this.runTime);
-        System.out.printf("Candidate Generation Memory Usage: %.2f MB%n", this.memoryUsed);
+        System.out.printf("Execution Time: %.2f s%n", this.runTime);
+        System.out.printf("Memory Usage: %.2f MB%n", this.memoryUsed);
         System.out.println("\n🔹 Final Top-" + this.k + " Itemsets:");
 
         if (allCandidates.isEmpty()) {

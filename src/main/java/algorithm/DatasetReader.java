@@ -19,8 +19,8 @@ public class DatasetReader {
                 }
             }
         }
-        System.out.println("\n--------------------------- Starting to transform transactions to weekly transactions/short time transactions ---------------------------\n");
-        List<List<Transaction>> weeklyTransactions = transformToWeeklyTransactions(transactions);
+        System.out.println("\n--------------------------- Starting to transform transactions to short time transactions ---------------------------\n");
+        List<List<Transaction>> weeklyTransactions = transformToDailyTransactions(transactions);
         System.out.println("Transactions loaded: " + weeklyTransactions.stream().mapToInt(List::size).sum());
         System.out.println("Short Time Transactions loaded: " + weeklyTransactions.size());
         return weeklyTransactions;
@@ -53,6 +53,9 @@ public class DatasetReader {
         return integerList;
     }
 
+    /***
+     * Splitting Method For Retail Transactions (retail, ecommerce dataset)
+     */
     private static List<Transaction> extractWeeklyTransactions(List<Transaction> transactions, long startTimestamp) {
         List<Transaction> result = new ArrayList<>();
         int secondsInAWeek = 604800; // Seconds in one week
@@ -66,6 +69,28 @@ public class DatasetReader {
         System.err.println("Extracted " + result.size() + " transactions from " + getLocalDateTime(startTimestamp) + " to " + getLocalDateTime(endTimestamp));
         return result;
     }
+
+    /***
+     * Splitting Method For Rapid Click-Stream Activity (kosarak dataset)
+     */
+    private static List<Transaction> extractDailyTransactions(List<Transaction> transactions, long startTimestamp) {
+        List<Transaction> result = new ArrayList<>();
+        // Align the start timestamp to the end of that same day.
+//        long endTimestamp = alignToEndOfDay(startTimestamp);
+
+        long endTimestamp = startTimestamp + 3600; //hour
+        // Select transactions within the day.
+        for (Transaction transaction : transactions) {
+            if (transaction.getTimestamp() >= startTimestamp && transaction.getTimestamp() <= endTimestamp) {
+                result.add(transaction);
+            }
+        }
+
+        System.err.println("Extracted " + result.size() + " transactions from "
+                + getLocalDateTime(startTimestamp) + " to " + getLocalDateTime(endTimestamp));
+        return result;
+    }
+
 
     private static long alignToEndOfDay(long timestamp) {
         Instant instant = Instant.ofEpochSecond(timestamp);
@@ -90,6 +115,21 @@ public class DatasetReader {
         }
 
         return weeklyTransactions;
+    }
+
+    private static List<List<Transaction>> transformToDailyTransactions(List<Transaction> transactions) {
+        List<List<Transaction>> dailyTransactions = new ArrayList<>();
+        long startTimestamp = transactions.get(0).getTimestamp();
+
+        for (Transaction transaction : transactions) {
+            if (dailyTransactions.size() == 6) break;
+            if (transaction.getTimestamp() >= startTimestamp) {
+                List<Transaction> dailyTransaction = extractDailyTransactions(transactions, startTimestamp);
+                dailyTransactions.add(dailyTransaction);
+                startTimestamp = startTimestamp + 3601;
+            }
+        }
+        return dailyTransactions;
     }
 
     private static String getLocalDateTime(long timestamp) {
