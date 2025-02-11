@@ -5,9 +5,8 @@
 
 This project implements novel data mining techniques for extracting high-utility itemsets from transactional datasets. The goal is to mine **Top-K Periodic High-utility Probabilistic Itemsets** from short-time periods while supporting both positive and negative utilities. Our work is motivated by the need to extract actionable insights (e.g., trending item combinations in retail) using advanced utility mining methods.
 
-Our main method is **STP-HUPI** (Short Time Period High Utility Probabilistic Itemsets) – which uses a probability-based expected utility computation combined with period constraints. In addition, we have implemented two additional methods for comparison:
-- **[2] STP-HUI:** Short Time High Utility Itemsets (ignores period constraints).
-- **[3] ST-HUPI:** Short Time Period High Utility Itemsets (ignores probability computation).
+Our main method is **STP-HUPI** (Short Time Period High Utility Probabilistic Itemsets) – which uses a probability-based expected utility computation combined with period constraints. In addition, we have implemented the additional method for comparison:
+- **[*] STP-HUI:** Short Time Period High Utility Itemsets (ignores probability computation).
 
 
 ## Project Information
@@ -35,7 +34,7 @@ This project is hosted on GitHub. Please refer to the repository for the full so
 Our project focuses on the mining of top-k high-utility itemsets in a short time period while considering both positive and negative utilities. Traditional high-utility itemset mining algorithms often require a pre-set minimum utility threshold and may not handle negative utilities or time constraints effectively. To address these limitations, our work introduces:
 
 - **STP-HUPI:** Our primary algorithm, which mines itemsets using a combination of probability-based expected utility (which normalizes using the positive utility from transactions) and a period constraint. Only itemsets that occur within a short period (as defined by a maximum period threshold) and have high expected utility are output.
-- **STP-HUI & ST-HUPI:** Two alternative methods implemented to compare with our primary method. These methods relax one of the two constraints (either period or probability) to analyze their individual contributions.
+- **STP-HUI:** An alternative algorithm is implemented for comparison with our main method. This method relaxes one of the constraints (probability) to analyze their individual contributions.
 
 ## Implementation Details
 

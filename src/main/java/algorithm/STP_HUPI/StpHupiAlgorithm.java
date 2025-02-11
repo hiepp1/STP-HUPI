@@ -10,67 +10,88 @@ import lombok.NoArgsConstructor;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * The StpHupiAlgorithm class implements the Short Time Period High Utility Probabilistic Itemsets (STP-HUPI)
+ * mining algorithm using a tree-based candidate generation approach. It uses a StpHupiTree to recursively extend
+ * candidate itemsets while enforcing utility and period constraints, and applies dynamic threshold raising strategies
+ * to prune the search space. This algorithm handles both positive and negative utilities.
+ */
 @Data
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
 public class StpHupiAlgorithm {
-    // Fields for dataset, parameters, and utility tracking.
-    private List<Transaction> transactions;
+    // --------------------------- Fields ---------------------------
+    private List<Transaction> transactions;      // The list of transactions to process.
     private int maxPer;                          // Maximum allowed period for an itemset.
     private int k;                               // Current top-K value.
     private float minUtil;                       // Minimum expected utility threshold.
     private PriorityQueue<Itemset> topKItemsets; // Priority queue to maintain top-K itemsets.
     private Map<Integer, Float> twu;             // Transaction-weighted utility map.
-    private Map<Integer, Float> pwtu;         // Positive Transaction-weighted utility map.
+    private Map<Integer, Float> posUtil;         // Positive utility map.
     private final Set<String> processedPSU = new HashSet<>(); // Set to avoid duplicate PSU computations.
     private Set<String> topKSeen;                // Set to track processed (canonical) itemset keys.
     private double runTime; // Runtime result per k-value.
     private double memoryUsed;  // Memory usage per k-value.
 
-    // Constructor.
+    // --------------------------- Constructor ---------------------------
+
+    /**
+     * Constructs a StpHupiAlgorithm instance with the specified transactions, top-K value, and maximum period.
+     *
+     * @param transactions the list of transactions to process.
+     * @param k the top-K parameter.
+     * @param maxPer the maximum allowed period.
+     */
     public StpHupiAlgorithm(List<Transaction> transactions, int k, int maxPer) {
         this.transactions = new ArrayList<>(transactions);
         this.k = k;
         this.maxPer = maxPer;
         this.topKItemsets = new PriorityQueue<>(Comparator.comparing(Itemset::getExpectedUtility));
         this.twu = new HashMap<>();
-        this.pwtu = new HashMap<>();
+        this.posUtil = new HashMap<>();
         this.topKSeen = new HashSet<>();
     }
 
-    // --------------------------- THRESHOLD RAISING STRATEGIES ---------------------------//
+    // --------------------------- THRESHOLD RAISING STRATEGIES ---------------------------
 
     /**
      * Calculates the maximum Positive Remaining Item Utility (PRIU) over all transactions.
      * For each transaction, it sums the positive utilities (from posUtil) of all items and returns the maximum sum.
+     *
+     * @return the maximum PRIU value.
      */
     private float calculatePRIU() {
         return (float) this.transactions.stream()
                 .mapToDouble(transaction -> transaction.getItems().stream()
-                        .mapToDouble(item -> this.pwtu.getOrDefault(item, 0f))
+                        .mapToDouble(item -> this.posUtil.getOrDefault(item, 0f))
                         .sum())
                 .max().orElse(0);
     }
 
     /**
-     * Positive Leaf Itemset Utility Exact strategy (PLIU_E): for each transaction, it sorts items by positive utility and sums the top two values.
-     * Returns the maximum sum among transactions.
+     * Computes the Positive Leaf Itemset Utility Exact strategy (PLIU_E).
+     * For each transaction, it sorts items by positive utility and sums the top two values,
+     * then returns the maximum sum across all transactions.
+     *
+     * @return the maximum PLIU_E value.
      */
     private float calculatePLIU_E() {
         return (float) this.transactions.stream()
                 .mapToDouble(transaction -> {
                     List<Integer> sortedItems = transaction.getItems().stream()
-                            .sorted(Comparator.comparingDouble(item -> this.pwtu.getOrDefault(item, 0f)))
+                            .sorted(Comparator.comparingDouble(item -> this.posUtil.getOrDefault(item, 0f)))
                             .collect(Collectors.toList());
                     return sortedItems.stream().limit(2)
-                            .mapToDouble(item -> this.pwtu.getOrDefault(item, 0f))
+                            .mapToDouble(item -> this.posUtil.getOrDefault(item, 0f))
                             .sum();
                 }).max().orElse(0);
     }
 
     /**
-     * Positive Leaf Itemset Utility Lower Bound strategy (PLIU_LB)
-     * Returns the smallest expected utility among the current top-k itemsets.
+     * Computes the Positive Leaf Itemset Utility Lower Bound (PLIU_LB) by returning the smallest
+     * expected utility among the current top-K itemsets.
+     *
+     * @return the minimum expected utility among top-K itemsets.
      */
     private float calculatePLIU_LB() {
         if (this.topKItemsets.isEmpty()) return 0;
@@ -79,10 +100,14 @@ public class StpHupiAlgorithm {
                 .min().orElse(0);
     }
 
-    // ------------- TRANSACTION UTILITY -------------//
+    // --------------------------- TRANSACTION UTILITY ---------------------------
 
     /**
-     * Calculates the positive transaction utility (PTU) for a given transaction.
+     * Calculates the positive transaction utility (PTU) for a given transaction by summing the positive
+     * utilities of all items in that transaction.
+     *
+     * @param transaction the transaction to process.
+     * @return the positive transaction utility.
      */
     private float calculatePTU(Transaction transaction) {
         return (float) transaction.getItems().stream()
@@ -93,7 +118,11 @@ public class StpHupiAlgorithm {
     }
 
     /**
-     * Calculates the absolute negative transaction utility (ANTU) for a given transaction.
+     * Calculates the absolute negative transaction utility (ANTU) for a given transaction by summing
+     * the absolute values of the negative utilities.
+     *
+     * @param transaction the transaction to process.
+     * @return the absolute negative transaction utility.
      */
     private float calculateANTU(Transaction transaction) {
         return (float) transaction.getItems().stream()
@@ -103,12 +132,16 @@ public class StpHupiAlgorithm {
                 }).sum();
     }
 
-    // ------------- UTILITY & OCCURRENCE CALCULATIONS -------------//
+    // --------------------------- UTILITY & OCCURRENCE CALCULATIONS ---------------------------
 
     /**
-     * Calculates the utility of an itemset in a given transaction.
+     * Calculates the raw utility of an itemset in a given transaction by summing the utilities of its items.
+     *
+     * @param transaction the transaction to process.
+     * @param itemset the itemset for which utility is calculated.
+     * @return the raw utility of the itemset.
      */
-    private int calculateUtility(Transaction transaction, List<Integer> itemset) {
+    private int calculateItemsetUtility(Transaction transaction, List<Integer> itemset) {
         return itemset.stream().mapToInt(item -> {
             int index = transaction.getItems().indexOf(item);
             return index != -1 ? transaction.getUtilities().get(index) : 0;
@@ -116,20 +149,22 @@ public class StpHupiAlgorithm {
     }
 
     /**
-     * Finds all occurrences of an itemset in the transactions.
-     * For each transaction containing the itemset, the method computes:
-     * - raw utility,
-     * - a probability value (if raw utility is positive, probability = rawUtility/positiveUtility;
-     * if negative, probability = |rawUtility|/totalAbsoluteNegativeUtility),
-     * - expected utility = rawUtility * probability.
+     * Finds all occurrences of an itemset across the transactions.
+     * For each transaction that contains the itemset, it computes:
+     * - the raw utility of the itemset,
+     * - a probability value based on positive and negative utility normalization,
+     * - the expected utility as raw utility multiplied by the probability.
+     *
+     * @param itemset the itemset to search for.
+     * @return a list of Occurrence objects representing the itemset's presence in transactions.
      */
     private List<Occurrence> findOccurrences(List<Integer> itemset) {
         return transactions.stream()
                 .filter(transaction -> transaction.getItems().containsAll(itemset))
                 .map(transaction -> {
-                    int utility = this.calculateUtility(transaction, itemset);
+                    int utility = this.calculateItemsetUtility(transaction, itemset);
 
-                    // Compute positive part (PTU) and negative part (absolute negative sum) for normalization.
+                    // Compute positive and negative components for normalization.
                     float ptu = this.calculatePTU(transaction);
                     float ntu = this.calculateANTU(transaction);
                     float probability = 0f;
@@ -145,7 +180,11 @@ public class StpHupiAlgorithm {
     }
 
     /**
-     * Calculates the maximum period (largest gap between consecutive occurrences) for an itemset.
+     * Calculates the maximum period for an itemset based on the gaps between consecutive transaction IDs
+     * in which the itemset occurs.
+     *
+     * @param occurrences the list of Occurrence objects for the itemset.
+     * @return the maximum period (largest gap) between consecutive occurrences.
      */
     private int calculateMaxPeriod(List<Occurrence> occurrences) {
         if (occurrences.size() < 2) return 0;
@@ -161,37 +200,30 @@ public class StpHupiAlgorithm {
     }
 
     /**
-     * Sums the expected utilities (computed with probabilities) for all occurrences of an itemset.
+     * Returns the total expected utility for an itemset by summing the expected utilities of all occurrences.
+     *
+     * @param occurrences the list of Occurrence objects for the itemset.
+     * @return the total expected utility.
      */
     private float getTotalExpectedUtility(List<Occurrence> occurrences) {
         return (float) occurrences.stream().mapToDouble(Occurrence::getExpectedUtility).sum();
     }
 
     /**
-     * Sums the raw utilities for all occurrences of an itemset.
+     * Returns the total raw utility for an itemset by summing the utilities of all occurrences.
+     *
+     * @param occurrences the list of Occurrence objects for the itemset.
+     * @return the total raw utility.
      */
     private int getTotalUtility(List<Occurrence> occurrences) {
         return occurrences.stream().mapToInt(Occurrence::getUtility).sum();
     }
 
-    /**
-     * Sums the positive utilities for all occurrences.
-     */
-    private float getTotalPositiveUtility(List<Occurrence> occurrences) {
-        return (float) occurrences.stream().mapToDouble(o -> Math.max(o.getUtility(), 0)).sum();
-    }
+    // --------------------------- PRUNING STRATEGY ---------------------------
 
     /**
-     * Sums the negative utilities for all occurrences.
-     */
-    private float getTotalNegativeUtility(List<Occurrence> occurrences) {
-        return (float) occurrences.stream().mapToDouble(o -> Math.min(o.getUtility(), 0)).sum();
-    }
-
-    // ------------- PRUNING STRATEGY -------------//
-
-    /**
-     * Filters out low-utility items from transactions based on the current minUtil threshold.
+     * Filters out items from each transaction whose transaction-weighted utility (TWU) is below the current minUtil threshold.
+     * This pruning reduces the search space for candidate itemset generation.
      */
     private void filterLowUtilityItems() {
         this.transactions.removeIf(transaction -> {
@@ -200,12 +232,18 @@ public class StpHupiAlgorithm {
         });
     }
 
-
-    // ------------- PSU (Positive Sub-tree Utility) -------------//
+    // --------------------------- PSU (POSITIVE SUB-TREE UTILITY) ---------------------------
 
     /**
-     * Calculates the PSU for a given prefix and candidate extension.
-     * Returns the maximum PSU computed across transactions.
+     * Calculates the Positive Sub-tree Utility (PSU) for a given prefix and candidate extension item.
+     * PSU is defined as the sum of:
+     * - the utility of the prefix,
+     * - the positive part of the candidate extension item's utility,
+     * - the remaining positive utility of items not in the prefix or the extension.
+     *
+     * @param prefix the current itemset prefix.
+     * @param extensionItem the candidate item to extend the prefix.
+     * @return the computed PSU value.
      */
     private float calculatePSU(List<Integer> prefix, int extensionItem) {
         String key = prefix + "-" + extensionItem;
@@ -216,8 +254,8 @@ public class StpHupiAlgorithm {
             if (!transaction.getItems().containsAll(prefix) || !transaction.getItems().contains(extensionItem)) {
                 continue;
             }
-            int prefixUtility = this.calculateUtility(transaction, prefix);
-            int extensionUtility = this.calculateUtility(transaction, List.of(extensionItem));
+            int prefixUtility = this.calculateItemsetUtility(transaction, prefix);
+            int extensionUtility = this.calculateItemsetUtility(transaction, List.of(extensionItem));
             int adjustedExtensionUtility = Math.max(extensionUtility, 0);
             int remainingPositiveUtility = this.calculateRPU(transaction, prefix, extensionItem);
             float computedPSU = prefixUtility + adjustedExtensionUtility + remainingPositiveUtility;
@@ -227,6 +265,15 @@ public class StpHupiAlgorithm {
         return maxPSU;
     }
 
+    /**
+     * Calculates the Remaining Positive Utility (RPU) for a transaction.
+     * This is the sum of the positive utilities of items that are not in the prefix or the candidate extension.
+     *
+     * @param transaction the transaction.
+     * @param prefix the current itemset prefix.
+     * @param extensionItem the candidate extension item.
+     * @return the sum of positive utilities of the remaining items.
+     */
     private int calculateRPU(Transaction transaction, List<Integer> prefix, int extensionItem) {
         return transaction.getItems().stream()
                 .filter(item -> !prefix.contains(item) && item != extensionItem)
@@ -238,11 +285,10 @@ public class StpHupiAlgorithm {
                 }).sum();
     }
 
-
-    // ------------- TWU COMPUTING -------------//
+    // --------------------------- TWU COMPUTING ---------------------------
 
     /**
-     * Computes the Transaction-Weighted Utility (TWU) for each item and updates posUtil and negUtil maps.
+     * Computes the Transaction-Weighted Utility (TWU) for each item and updates the positive utility maps.
      */
     private void computeTWU() {
         for (Transaction transaction : transactions) {
@@ -252,7 +298,7 @@ public class StpHupiAlgorithm {
                 int item = transaction.getItems().get(i);
                 float utility = transaction.getUtilities().get(i);
 
-                if (utility >= 0) pwtu.merge(item, utility, Float::sum);
+                if (utility >= 0) posUtil.merge(item, utility, Float::sum);
                 else twu += utility; // Adjust transaction utility with negative values.
             }
 
@@ -262,25 +308,27 @@ public class StpHupiAlgorithm {
         }
     }
 
-
-    // ------------- ITEMSET GENERATION AND TREE GROWTH -------------//
+    // --------------------------- ITEMSET GENERATION AND TREE GROWTH ---------------------------
 
     /**
-     * Generates candidate high-utility itemsets by building a ShortTimePeriodTree.
-     * It collects unique items, sorts them by TWU, initializes tree nodes for single-item itemsets,
-     * and grows the tree recursively.
+     * Generates candidate high-utility itemsets using a tree-based approach.
+     * Unique items are collected and sorted by TWU in descending order. For each unique item,
+     * a single-item itemset is initialized and extended recursively using the stpHupiTreeGrowth method.
+     *
+     * @return a list of the final top-K itemsets.
      */
     private List<Itemset> generateItemsets() {
-        // Collect unique items using a Set for efficiency.
+        // Collect unique items from all transactions.
         Set<Integer> uniqueItems = this.transactions.stream()
                 .flatMap(t -> t.getItems().stream())
                 .collect(Collectors.toSet());
 
-        // Sort unique items in descending order based on TWU.
+        // Sort unique items in descending order by TWU.
         List<Integer> sortedUniqueItemsByTWU = uniqueItems.stream()
                 .sorted((a, b) -> Float.compare(this.twu.getOrDefault(b, 0f), this.twu.getOrDefault(a, 0f)))
                 .collect(Collectors.toList());
 
+        // Create the root of the STP-HUPI tree.
         StpHupiTree root = new StpHupiTree(new ArrayList<>(), 0, 0f, 0);
 
         // For each unique item, initialize a single-item itemset and grow the tree.
@@ -291,16 +339,20 @@ public class StpHupiAlgorithm {
             if (occurrences.size() > 1) {
                 int maxPeriod = this.calculateMaxPeriod(occurrences);
                 if (maxPeriod > this.maxPer) continue;
+
+                float expectedUtility = this.getTotalExpectedUtility(occurrences);
+                if (expectedUtility < 0) continue;
+
                 int utility = this.getTotalUtility(occurrences);
                 if (utility < 0) continue;
-                float expectedUtility = this.getTotalExpectedUtility(occurrences);
-//                if (expectedUtility < 0) continue;
 
+                // Initialize a new tree node for the single-item itemset.
                 StpHupiTree node = new StpHupiTree(currentItemset, utility, expectedUtility, maxPeriod);
                 Map<Integer, StpHupiTree> children = node.getChildren();
                 children.put(item, node);
                 root.setChildren(children);
 
+                // Extend the tree recursively.
                 this.stpTreeGrowth(node);
             }
         }
@@ -310,9 +362,11 @@ public class StpHupiAlgorithm {
     }
 
     /**
-     * Recursively grows the ShortTimePeriodTree by extending the current node's itemset.
-     * It computes new occurrences and utility measures for candidate extensions and prunes
-     * branches that do not meet the required thresholds.
+     * Recursively grows the STP-HUPI tree by extending the current node's itemset.
+     * For each candidate extension, it recomputes occurrences and utility measures,
+     * and prunes branches that do not meet the required thresholds.
+     *
+     * @param node the current tree node.
      */
     private void stpTreeGrowth(StpHupiTree node) {
         if (node.getExpectedUtility() < this.minUtil) return;
@@ -347,20 +401,26 @@ public class StpHupiAlgorithm {
                 float newTotalExpUtil = this.getTotalExpectedUtility(newOccurrences);
                 if (newTotalExpUtil < this.minUtil) continue;
 
+                // Create a new tree node for the extended itemset.
                 StpHupiTree childNode = new StpHupiTree(new ArrayList<>(newItemset),
                         newUtility, newTotalExpUtil, newMaxPeriod);
 
                 Map<Integer, StpHupiTree> children = childNode.getChildren();
                 children.put(item, childNode);
                 node.setChildren(children);
+
+                // Recursively extend the new node.
                 this.stpTreeGrowth(childNode);
             }
         }
     }
 
     /**
-     * Processes the current itemset. If it satisfies the constraints (utility and period),
-     * the itemset is added to the top-K candidate list. It also updates the dynamic threshold.
+     * Processes the current itemset contained in the given tree node.
+     * If the itemset satisfies the utility and period constraints, it is added to the top-K candidate list.
+     * After processing, the dynamic minimum utility threshold is updated.
+     *
+     * @param node the tree node containing the candidate itemset.
      */
     private void processCurrentItemset(StpHupiTree node) {
         List<Integer> currentItemset = node.getItemset();
@@ -384,8 +444,10 @@ public class StpHupiAlgorithm {
     }
 
     /**
-     * Dynamically updates the minimum expected utility threshold based on the current top-K itemsets.
-     * This threshold is used for pruning less promising candidate itemsets.
+     * Dynamically updates the minimum expected utility threshold (minUtil) based on the current top-K itemsets.
+     * The new threshold is computed using a weighted combination of the lowest expected utility among the current
+     * top-K candidates and upper-bound measures (PRIU, PLIU_E, and PLIU_LB). If the computed dynamic threshold exceeds
+     * the current minUtil by at least 10%, minUtil is updated.
      */
     private void updateMinUtil() {
         if (this.topKItemsets.size() >= this.k) {
@@ -401,38 +463,41 @@ public class StpHupiAlgorithm {
 
             if (dynamicThreshold > this.minUtil * 1.1f) {
                 this.minUtil = dynamicThreshold;
-//                System.out.println("Updated MinUtil: " + this.minUtil);
             }
         }
     }
 
-    // ------------------------------------------- HELPER FUNCTIONS -----------------------------------//
+    // --------------------------- HELPER FUNCTIONS ---------------------------
 
     /**
-     * Returns the canonical (sorted) order of the items.
+     * Returns the canonical (sorted) order of the given list of items.
+     *
+     * @param items the list of items.
+     * @return a new list containing the items in sorted order.
      */
     private List<Integer> getCanonicalOrder(List<Integer> items) {
         return items.stream().sorted().collect(Collectors.toList());
     }
 
     /**
-     * Generates a canonical key (String) for the itemset based on its sorted order.
+     * Generates a canonical key (String) for an itemset by converting its sorted order to a string.
+     *
+     * @param items the list of items in the itemset.
+     * @return the canonical key representing the itemset.
      */
     private String getItemsetKey(List<Integer> items) {
         return this.getCanonicalOrder(items).toString();
     }
 
-    // ------------------------------------------- RUN & EVALUATION -----------------------------------//
+    // --------------------------- RUN & EVALUATION ---------------------------
 
     /**
-     * Evaluates top-K performance by running the algorithm for k-value.
-     * It measures runtime and memory usage, then prints the final top-K itemsets.
+     * Evaluates the top-K performance of the algorithm by executing the candidate generation process,
+     * measuring execution time and memory usage, and printing the final top-K itemsets.
      */
     public void evaluateTopKPerformance() {
         this.computeTWU();
         this.filterLowUtilityItems();
-//        System.out.println("Database Utility: " + this.transactions.stream().mapToInt(Transaction::getTransactionUtility).sum());
-//        System.out.println("Initial Minimum Utility: " + minUtil);
 
         // Measure runtime and memory for the candidate generation process.
         long startTime = System.nanoTime();

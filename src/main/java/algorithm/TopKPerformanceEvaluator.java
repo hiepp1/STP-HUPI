@@ -8,11 +8,15 @@ import lombok.NoArgsConstructor;
 import org.knowm.xchart.*;
 import org.knowm.xchart.style.Styler;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
+/**
+ * This class evaluates the performance of two top-K mining algorithms:
+ * - STP-HUPI (Short Time Period High Utility Probabilistic Itemsets)
+ * - STP-HUI (Short Time Period High Utility Itemsets)
+ * It compares them based on runtime and memory consumption.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -30,29 +34,54 @@ public class TopKPerformanceEvaluator {
     private int k;
     private int maxPer;
 
+    /**
+     * Constructor to initialize the evaluator with dataset path, top-K value, and max period.
+     */
     public TopKPerformanceEvaluator(String filePath, int k, int maxPer) {
         this.filePath = filePath;
         this.k = k;
         this.maxPer = maxPer;
     }
 
+    /**
+     * Runs the evaluation process by loading the dataset, transforming it into short-time segments,
+     * and executing both algorithms on each segment.
+     */
     public void run() {
         try {
-            this.transactions = DatasetReader.readDataset(this.filePath); // Read dataset
-            for (int i = 0; i < 6; i++) {
-                System.out.println("\n-------------------------------------------- Processing transaction list " + i + "--------------------------------------------\n");
-                System.out.println("No. of transactions: " + transactions.get(i).size());
-                this.shortTimeTransactions.put(i+1, transactions.get(i).size());
-                if (!transactions.isEmpty()) {
-                    this.runStpHUPI(transactions.get(i)); // [1] Short Time Period High Utility Probabilities Itemsets
-                    this.runStpHUI(transactions.get(i)); // [2] Short Time Period High Utility Itemsets
+            this.transactions = DatasetReader.readDataset(this.filePath);
+            if (DatasetReader.extractDatasetName(filePath).equals("korasak")) {
+                for (int i = 0; i < 6; i++) {
+                    System.out.println("\n-------------------------------------------- Processing transaction list " + i + "--------------------------------------------\n");
+                    System.out.println("No. of transactions: " + transactions.get(i).size());
+                    this.shortTimeTransactions.put(i+1, transactions.get(i).size());
+                    if (!transactions.isEmpty()) {
+                        this.runStpHUPI(transactions.get(i)); // [1] Short Time Period High Utility Probabilities Itemsets
+                        this.runStpHUI(transactions.get(i)); // [2] Short Time Period High Utility Itemsets
+                    }
+                }
+            } else {
+                int i = 1;
+                for (List<Transaction> transactions : this.transactions) {
+                    System.out.println("\n-------------------------------------------- Processing transaction list " + i + "--------------------------------------------\n");
+                    System.out.println("No. of transactions: " + transactions.size());
+                    this.shortTimeTransactions.put(i, transactions.size());
+                    if (!transactions.isEmpty()) {
+                        this.runStpHUPI(transactions); // [1] Short Time Period High Utility Probabilities Itemsets
+                        this.runStpHUI(transactions); // [2] Short Time Period High Utility Itemsets
+                    }
+                    i += 1;
                 }
             }
+
         } catch (IOException e) {
             System.err.println("Error reading the dataset: " + e.getMessage());
         }
     }
 
+    /**
+     * Runs the STP-HUPI algorithm on a given transaction list and records its runtime and memory usage.
+     */
     private void runStpHUPI(List<Transaction> transactions) {
         System.out.println("\nRunning [1] Short-time Top-" + this.k + " Periodic High-utility Probabilistic Itemsets...");
         StpHupiAlgorithm stpHUPI = new StpHupiAlgorithm(new ArrayList<>(transactions), k, maxPer);
@@ -61,6 +90,9 @@ public class TopKPerformanceEvaluator {
         this.memories1.add(stpHUPI.getMemoryUsed());
     }
 
+    /**
+     * Runs the STP-HUI algorithm on a given transaction list and records its runtime and memory usage.
+     */
     private void runStpHUI(List<Transaction> transactions) {
         System.out.println("\nRunning [2] Short-time Top-" + this.k + " Periodic High-utility Itemsets...");
         StpHuiAlgorithm stpHUI = new StpHuiAlgorithm(new ArrayList<>(transactions), k, maxPer);
@@ -69,35 +101,44 @@ public class TopKPerformanceEvaluator {
         this.memories2.add(stpHUI.getMemoryUsed());
     }
 
+    /**
+     * Displays evaluation results by generating comparison charts for:
+     * - Short-time transaction distribution
+     * - Runtime comparison
+     * - Memory usage comparison
+     */
     public void displayResults() {
 
-        String datasetTitle = extractDatasetName(this.filePath);
+        String datasetTitle = DatasetReader.extractDatasetName(this.filePath);
         this.plotShortTimeTransactionComparisonChart(this.shortTimeTransactions, datasetTitle);
         this.plotRunTimeComparisonChart(datasetTitle);
         this.plotMemoryComparisonChart(datasetTitle);
     }
 
-    public String extractDatasetName(String filepath) {
-        File file = new File(filepath);
-        String filename = file.getName();
-        int dotIndex = filename.lastIndexOf('.');
-        if (dotIndex > 0) return filename.substring(0, dotIndex);
-        return filename;
-    }
-
+    /**
+     * Plots a bar chart comparing the number of transactions in each short-time dataset segment.
+     */
     private void plotShortTimeTransactionComparisonChart(Map<Integer, Integer> shortTimeTransactions, String title) {
         List<Integer> weeks = new ArrayList<>(shortTimeTransactions.keySet());
         List<Integer> transactionCounts = new ArrayList<>(shortTimeTransactions.values());
 
+        String shortTimeWindow;
+        if (title.equals("korasak")) {
+            shortTimeWindow = "One Hour";
+        } else {
+            shortTimeWindow = "Week";
+        }
         CategoryChart chart = new CategoryChartBuilder()
                 .width(800)
                 .height(600)
                 .title("Short Time Transaction Comparison: " + title)
-                .xAxisTitle("An Hour")
+                .xAxisTitle(shortTimeWindow)
                 .yAxisTitle("No. of Transactions")
                 .build();
 
-        chart.getStyler().setLegendPosition(Styler.LegendPosition.InsideNW);
+//        chart.getStyler().setLegendPosition(Styler.LegendPosition.InsideNW);
+        chart.getStyler().setLegendPosition(org.knowm.xchart.style.Styler.LegendPosition.OutsideS);
+        chart.getStyler().setLegendLayout(org.knowm.xchart.style.Styler.LegendLayout.Horizontal);
         chart.getStyler().setPlotGridVerticalLinesVisible(false);
         chart.getStyler().setAvailableSpaceFill(0.3);
 
@@ -106,14 +147,15 @@ public class TopKPerformanceEvaluator {
         new SwingWrapper<>(chart).displayChart();
     }
 
+    /**
+     * Plots a grouped bar chart comparing memory usage of STP-HUPI and STP-HUI.
+     */
     private void plotMemoryComparisonChart(String title) {
-        // Create a list of week numbers from 1 to the size of memories1.
         List<Integer> weeks = new ArrayList<>();
         for (int i = 0; i < this.memories1.size(); i++) {
             weeks.add(i + 1);
         }
 
-        // Create a CategoryChart for a bar/column chart.
         CategoryChart chart = new CategoryChartBuilder()
                 .width(700)
                 .height(500)
@@ -122,28 +164,26 @@ public class TopKPerformanceEvaluator {
                 .yAxisTitle("Memory (MB)")
                 .build();
 
-        // Customize styling.
         chart.getStyler().setLegendPosition(org.knowm.xchart.style.Styler.LegendPosition.OutsideS);
         chart.getStyler().setLegendLayout(org.knowm.xchart.style.Styler.LegendLayout.Horizontal);
-        chart.getStyler().setAvailableSpaceFill(0.3);  // Adjust bar width (smaller value => narrower bars)
-        chart.getStyler().setOverlapped(false);         // Group bars side by side
+        chart.getStyler().setAvailableSpaceFill(0.3);
+        chart.getStyler().setOverlapped(false);
 
-        // Add series for each algorithm.
         chart.addSeries("STP-HUPI", weeks, this.memories1);
         chart.addSeries("STP-HUI", weeks, this.memories2);
 
-        // Display the chart.
         new SwingWrapper<>(chart).displayChart();
     }
 
+    /**
+     * Plots a grouped bar chart comparing runtime performance of STP-HUPI and STP-HUI.
+     */
     private void plotRunTimeComparisonChart(String title) {
-        // Convert the week keys (integers) to String categories.
         List<Integer> weeks = new ArrayList<>();
         for (int i = 0; i < this.runTimes1.size(); i++) {
             weeks.add(i + 1);
         }
 
-        // (Assume both maps have the same set of week keys. If not, you may need to merge them.)
         CategoryChart chart = new CategoryChartBuilder()
                 .width(700)
                 .height(500)
@@ -152,17 +192,14 @@ public class TopKPerformanceEvaluator {
                 .yAxisTitle("Runtime (Sec.)")
                 .build();
 
-        // Customize styling.
         chart.getStyler().setLegendPosition(org.knowm.xchart.style.Styler.LegendPosition.OutsideS);
         chart.getStyler().setLegendLayout(org.knowm.xchart.style.Styler.LegendLayout.Horizontal);
         chart.getStyler().setAvailableSpaceFill(0.3);  // Adjust bar width (smaller value => narrower bars)
         chart.getStyler().setOverlapped(false);         // Group bars side by side
 
-        // Add series for each algorithm.
         chart.addSeries("STP-HUPI", weeks, this.runTimes1);
         chart.addSeries("STP-HUI", weeks, this.runTimes2);
 
-        // Display the chart.
         new SwingWrapper<>(chart).displayChart();
     }
 }

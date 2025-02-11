@@ -6,6 +6,10 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * Represents an itemset found in a set of transactions.
+ * An itemset consists of multiple items and contains utility-based measurements.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -5,7 +5,23 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+/**
+ * The DatasetReader class is responsible for reading a dataset file,
+ * parsing transactions, and transforming the transactions into short-time
+ * sub-datasets based on the dataset type.
+ */
 public class DatasetReader {
+
+    /**
+     * Reads the dataset from the given file path, parses each transaction,
+     * and transforms the transactions into short-time sub-datasets.
+     * For the "korasak" dataset, one-hour sub-datasets are produced;
+     * for other datasets (e.g., retail, ecommerce, mushroom), weekly sub-datasets are produced.
+     *
+     * @param filepath the path of the dataset file.
+     * @return a list of short-time transaction sub-datasets.
+     * @throws IOException if there is an error reading the file.
+     */
     public static List<List<Transaction>> readDataset(String filepath) throws IOException {
         List<Transaction> transactions = new ArrayList<>();
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filepath))) {
@@ -19,13 +35,27 @@ public class DatasetReader {
                 }
             }
         }
+
         System.out.println("\n--------------------------- Starting to transform transactions to short time transactions ---------------------------\n");
-        List<List<Transaction>> weeklyTransactions = transformToDailyTransactions(transactions);
-        System.out.println("Transactions loaded: " + weeklyTransactions.stream().mapToInt(List::size).sum());
-        System.out.println("Short Time Transactions loaded: " + weeklyTransactions.size());
-        return weeklyTransactions;
+        List<List<Transaction>> shortTimeDatasets;
+        if (extractDatasetName(filepath).equals("korasak")) {
+            shortTimeDatasets = transformToOneHourTransactions(transactions);
+        } else {
+            shortTimeDatasets = transformToWeeklyTransactions(transactions);
+        }
+        System.out.println("Transactions loaded: " + shortTimeDatasets.stream().mapToInt(List::size).sum());
+        System.out.println("Short Time Transactions loaded: " + shortTimeDatasets.size());
+        return shortTimeDatasets;
     }
 
+    /**
+     * Parses a single transaction from a line of text.
+     * The expected format is: "item_list: transactionUtility: utility_list: timestamp".
+     *
+     * @param line          the input line containing transaction data.
+     * @param transactionID the unique identifier to assign to this transaction.
+     * @return a Transaction object or null if parsing fails.
+     */
     private static Transaction parseTransaction(String line, int transactionID) {
         try {
             String[] parts = line.split(":");
@@ -44,6 +74,12 @@ public class DatasetReader {
         }
     }
 
+    /**
+     * Parses a space-separated string of integers into a list.
+     *
+     * @param input the input string containing integers.
+     * @return a list of integers.
+     */
     private static List<Integer> parseIntegerList(String input) {
         String[] tokens = input.trim().split("\\s+");
         List<Integer> integerList = new ArrayList<>();
@@ -53,8 +89,35 @@ public class DatasetReader {
         return integerList;
     }
 
-    /***
-     * Splitting Method For Retail Transactions (retail, ecommerce dataset)
+    /**
+     * Transforms the list of transactions into weekly sub-datasets.
+     * This method is used for retail, ecommerce, and mushroom datasets.
+     *
+     * @param transactions the complete list of transactions.
+     * @return a list of weekly sub-datasets.
+     */
+    private static List<List<Transaction>> transformToWeeklyTransactions(List<Transaction> transactions) {
+        List<List<Transaction>> weeklyTransactions = new ArrayList<>();
+        // Process transactions in weekly segments.
+        long startTimestamp = transactions.get(0).getTimestamp();
+
+        for (Transaction transaction : transactions) {
+            if (transaction.getTimestamp() >= startTimestamp) {
+                List<Transaction> weeklyTransaction = extractWeeklyTransactions(transactions, startTimestamp);
+                weeklyTransactions.add(weeklyTransaction);
+                startTimestamp = alignToEndOfDay(startTimestamp) + 604801; // Move to the next week; 604801 seconds = one week + 1 second to avoid overlap.
+            }
+        }
+
+        return weeklyTransactions;
+    }
+
+    /**
+     * Extracts transactions within a weekly window from the list of transactions.
+     *
+     * @param transactions the complete list of transactions.
+     * @param startTimestamp the starting timestamp of the week.
+     * @return a list of transactions that fall within the week.
      */
     private static List<Transaction> extractWeeklyTransactions(List<Transaction> transactions, long startTimestamp) {
         List<Transaction> result = new ArrayList<>();
@@ -65,21 +128,44 @@ public class DatasetReader {
                 result.add(transaction);
             }
         }
-
         System.err.println("Extracted " + result.size() + " transactions from " + getLocalDateTime(startTimestamp) + " to " + getLocalDateTime(endTimestamp));
         return result;
     }
 
-    /***
-     * Splitting Method For Rapid Click-Stream Activity (kosarak dataset)
+    /**
+     * Transforms the list of transactions into one-hour sub-datasets.
+     * This method is used for the Kosarak (click-stream) dataset.
+     * For visualization, only six hourly subsets are extracted.
+     *
+     * @param transactions the complete list of transactions.
+     * @return a list of one-hour sub-datasets.
      */
-    private static List<Transaction> extractDailyTransactions(List<Transaction> transactions, long startTimestamp) {
-        List<Transaction> result = new ArrayList<>();
-        // Align the start timestamp to the end of that same day.
-//        long endTimestamp = alignToEndOfDay(startTimestamp);
+    private static List<List<Transaction>> transformToOneHourTransactions(List<Transaction> transactions) {
+        List<List<Transaction>> oneHourTransList = new ArrayList<>();
+        long startTimestamp = transactions.get(0).getTimestamp();
+        // Extract only six hourly subsets for clarity.
+        for (Transaction transaction : transactions) {
+            // For clarity and ease of visualization of performance, we only take six hourly subsets of the 'korasak' dataset.
+            if (oneHourTransList.size() == 6) break;
+            if (transaction.getTimestamp() >= startTimestamp) {
+                List<Transaction> oneHourTrans = extractOneHourTransactions(transactions, startTimestamp);
+                oneHourTransList.add(oneHourTrans);
+                startTimestamp = startTimestamp + 3601; // Increment start timestamp by one hour + 1 second to avoid overlap.
+            }
+        }
+        return oneHourTransList;
+    }
 
-        long endTimestamp = startTimestamp + 3600; //hour
-        // Select transactions within the day.
+    /**
+     * Extracts transactions within a one-hour window.
+     *
+     * @param transactions the complete list of transactions.
+     * @param startTimestamp the starting timestamp of the hour.
+     * @return a list of transactions that fall within the hour.
+     */
+    private static List<Transaction> extractOneHourTransactions(List<Transaction> transactions, long startTimestamp) {
+        List<Transaction> result = new ArrayList<>();
+        long endTimestamp = startTimestamp + 3600; // 3600 seconds in one hour.
         for (Transaction transaction : transactions) {
             if (transaction.getTimestamp() >= startTimestamp && transaction.getTimestamp() <= endTimestamp) {
                 result.add(transaction);
@@ -91,51 +177,43 @@ public class DatasetReader {
         return result;
     }
 
-
+    /**
+     * Aligns the given timestamp to the end of its day (23:59:59).
+     *
+     * @param timestamp the input timestamp (in seconds).
+     * @return the timestamp corresponding to 23:59:59 of the same day.
+     */
     private static long alignToEndOfDay(long timestamp) {
         Instant instant = Instant.ofEpochSecond(timestamp);
         LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
-
-        // Set time to 23:59:59 of the same day
         LocalDateTime endOfDay = localDateTime.toLocalDate().atTime(23, 59, 59);
-
         return endOfDay.atZone(ZoneId.systemDefault()).toEpochSecond();
     }
 
-    private static List<List<Transaction>> transformToWeeklyTransactions(List<Transaction> transactions) {
-        List<List<Transaction>> weeklyTransactions = new ArrayList<>();
-        long startTimestamp = transactions.get(0).getTimestamp();
-
-        for (Transaction transaction : transactions) {
-            if (transaction.getTimestamp() >= startTimestamp) {
-                List<Transaction> weeklyTransaction = extractWeeklyTransactions(transactions, startTimestamp);
-                weeklyTransactions.add(weeklyTransaction);
-                startTimestamp = alignToEndOfDay(startTimestamp) + 604801;
-            }
-        }
-
-        return weeklyTransactions;
-    }
-
-    private static List<List<Transaction>> transformToDailyTransactions(List<Transaction> transactions) {
-        List<List<Transaction>> dailyTransactions = new ArrayList<>();
-        long startTimestamp = transactions.get(0).getTimestamp();
-
-        for (Transaction transaction : transactions) {
-            if (dailyTransactions.size() == 6) break;
-            if (transaction.getTimestamp() >= startTimestamp) {
-                List<Transaction> dailyTransaction = extractDailyTransactions(transactions, startTimestamp);
-                dailyTransactions.add(dailyTransaction);
-                startTimestamp = startTimestamp + 3601;
-            }
-        }
-        return dailyTransactions;
-    }
-
+    /**
+     * Converts a timestamp to a formatted local date and time string.
+     *
+     * @param timestamp the input timestamp (in seconds).
+     * @return a formatted date/time string (e.g., "HH:mm:ss dd/MM/yyyy").
+     */
     private static String getLocalDateTime(long timestamp) {
         Instant instant = Instant.ofEpochSecond(timestamp);
         LocalDateTime dateTime = LocalDateTime.ofInstant(instant, TimeZone.getDefault().toZoneId());
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
         return dateTime.format(formatter);
+    }
+
+    /**
+     * Extracts the dataset name from the given file path by removing the extension.
+     *
+     * @param filepath the path of the dataset file.
+     * @return the dataset name.
+     */
+    public static String extractDatasetName(String filepath) {
+        File file = new File(filepath);
+        String filename = file.getName();
+        int dotIndex = filename.lastIndexOf('.');
+        if (dotIndex > 0) return filename.substring(0, dotIndex);
+        return filename;
     }
 }
