@@ -11,9 +11,10 @@ public class Main {
         // Set algorithm parameters
         int k = 50;       // Top-K value (number of high-utility patterns to find)
         int maxPer = 200; // Maximum period constraint for itemsets
+        float threshold = 0.0001f;
 
         // Initialize the performance evaluator with the selected dataset
-        TopKPerformanceEvaluator evaluator = new TopKPerformanceEvaluator(filepath1, k, maxPer);
+        TopKPerformanceEvaluator evaluator = new TopKPerformanceEvaluator(filepath1, k, maxPer, threshold);
 
         // Run the evaluation process
         evaluator.run();

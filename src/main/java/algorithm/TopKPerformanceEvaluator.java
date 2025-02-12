@@ -33,14 +33,16 @@ public class TopKPerformanceEvaluator {
     private List<List<Transaction>> transactions;
     private int k;
     private int maxPer;
+    private float threshold;
 
     /**
      * Constructor to initialize the evaluator with dataset path, top-K value, and max period.
      */
-    public TopKPerformanceEvaluator(String filePath, int k, int maxPer) {
+    public TopKPerformanceEvaluator(String filePath, int k, int maxPer, float threshold) {
         this.filePath = filePath;
         this.k = k;
         this.maxPer = maxPer;
+        this.threshold = threshold;
     }
 
     /**
@@ -84,7 +86,7 @@ public class TopKPerformanceEvaluator {
      */
     private void runStpHUPI(List<Transaction> transactions) {
         System.out.println("\nRunning [1] Short-time Top-" + this.k + " Periodic High-utility Probabilistic Itemsets...");
-        StpHupiAlgorithm stpHUPI = new StpHupiAlgorithm(new ArrayList<>(transactions), k, maxPer);
+        StpHupiAlgorithm stpHUPI = new StpHupiAlgorithm(new ArrayList<>(transactions), k, maxPer, threshold);
         stpHUPI.evaluateTopKPerformance();
         this.runTimes1.add(stpHUPI.getRunTime());
         this.memories1.add(stpHUPI.getMemoryUsed());
@@ -95,7 +97,7 @@ public class TopKPerformanceEvaluator {
      */
     private void runStpHUI(List<Transaction> transactions) {
         System.out.println("\nRunning [2] Short-time Top-" + this.k + " Periodic High-utility Itemsets...");
-        StpHuiAlgorithm stpHUI = new StpHuiAlgorithm(new ArrayList<>(transactions), k, maxPer);
+        StpHuiAlgorithm stpHUI = new StpHuiAlgorithm(new ArrayList<>(transactions), k, maxPer, threshold);
         stpHUI.evaluateTopKPerformance();
         this.runTimes2.add(stpHUI.getRunTime());
         this.memories2.add(stpHUI.getMemoryUsed());
@@ -159,7 +161,7 @@ public class TopKPerformanceEvaluator {
         CategoryChart chart = new CategoryChartBuilder()
                 .width(700)
                 .height(500)
-                .title(title + ", k = " + this.k + ", maxPer = " + this.maxPer)
+                .title(title + ", k = " + this.k + ", maxPer = " + this.maxPer + ", threshold = " + this.threshold)
                 .xAxisTitle("Week")
                 .yAxisTitle("Memory (MB)")
                 .build();
@@ -187,7 +189,7 @@ public class TopKPerformanceEvaluator {
         CategoryChart chart = new CategoryChartBuilder()
                 .width(700)
                 .height(500)
-                .title(title + ", k = " + this.k + ", maxPer = " + this.maxPer)
+                .title(title + ", k = " + this.k + ", maxPer = " + this.maxPer + ", threshold = " + this.threshold)
                 .xAxisTitle("Week")
                 .yAxisTitle("Runtime (Sec.)")
                 .build();

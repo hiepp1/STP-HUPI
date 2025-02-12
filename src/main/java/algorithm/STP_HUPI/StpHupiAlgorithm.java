@@ -23,6 +23,7 @@ public class StpHupiAlgorithm {
     // --------------------------- Fields ---------------------------
     private List<Transaction> transactions;      // The list of transactions to process.
     private int maxPer;                          // Maximum allowed period for an itemset.
+    private float threshold;
     private int k;                               // Current top-K value.
     private float minUtil;                       // Minimum expected utility threshold.
     private PriorityQueue<Itemset> topKItemsets; // Priority queue to maintain top-K itemsets.
@@ -42,16 +43,25 @@ public class StpHupiAlgorithm {
      * @param k the top-K parameter.
      * @param maxPer the maximum allowed period.
      */
-    public StpHupiAlgorithm(List<Transaction> transactions, int k, int maxPer) {
+    public StpHupiAlgorithm(List<Transaction> transactions, int k, int maxPer, float threshold) {
         this.transactions = new ArrayList<>(transactions);
         this.k = k;
         this.maxPer = maxPer;
+        this.threshold = threshold;
         this.topKItemsets = new PriorityQueue<>(Comparator.comparing(Itemset::getExpectedUtility));
         this.twu = new HashMap<>();
         this.posUtil = new HashMap<>();
         this.topKSeen = new HashSet<>();
     }
 
+    private int calculateDbUtil() {
+        return this.transactions.stream().mapToInt(Transaction::getTransactionUtility).sum();
+    }
+
+    private void initialMinUtil() {
+        int dbUtil = this.calculateDbUtil();
+        this.minUtil = dbUtil * this.threshold;
+    }
     // --------------------------- THRESHOLD RAISING STRATEGIES ---------------------------
 
     /**
@@ -341,7 +351,7 @@ public class StpHupiAlgorithm {
                 if (maxPeriod > this.maxPer) continue;
 
                 float expectedUtility = this.getTotalExpectedUtility(occurrences);
-                if (expectedUtility < 0) continue;
+                if (expectedUtility < this.minUtil) continue;
 
                 int utility = this.getTotalUtility(occurrences);
                 if (utility < 0) continue;
@@ -496,14 +506,15 @@ public class StpHupiAlgorithm {
      * measuring execution time and memory usage, and printing the final top-K itemsets.
      */
     public void evaluateTopKPerformance() {
-        this.computeTWU();
-        this.filterLowUtilityItems();
-
         // Measure runtime and memory for the candidate generation process.
         long startTime = System.nanoTime();
         Runtime runtime = Runtime.getRuntime();
         runtime.gc();
         long memoryBefore = runtime.totalMemory() - runtime.freeMemory();
+
+        this.computeTWU();
+        this.initialMinUtil();
+        this.filterLowUtilityItems();
 
         List<Itemset> allCandidates = this.generateItemsets();
 

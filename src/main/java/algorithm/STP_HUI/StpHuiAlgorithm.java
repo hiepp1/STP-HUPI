@@ -25,6 +25,7 @@ public class StpHuiAlgorithm {
     private int maxPer;                          // Maximum allowed period for an itemset.
     private int k;                               // Current top-K value.
     private float minUtil;                       // Minimum utility threshold.
+    private float threshold;
     private PriorityQueue<Itemset> topKItemsets; // Priority queue to maintain top-K itemsets.
     private Map<Integer, Integer> twu;             // Transaction-weighted utility map.
     private Map<Integer, Integer> posUtil;         // Positive utility map.
@@ -42,16 +43,24 @@ public class StpHuiAlgorithm {
      * @param k the top-K parameter.
      * @param maxPer the maximum allowed period.
      */
-    public StpHuiAlgorithm(List<Transaction> transactions, int k, int maxPer) {
+    public StpHuiAlgorithm(List<Transaction> transactions, int k, int maxPer, float threshold) {
         this.transactions = new ArrayList<>(transactions);
         this.k = k;
         this.maxPer = maxPer;
+        this.threshold = threshold;
         this.topKItemsets = new PriorityQueue<>(Comparator.comparing(Itemset::getUtility));
         this.twu = new HashMap<>();
         this.posUtil = new HashMap<>();
         this.topKSeen = new HashSet<>();
     }
 
+    private int calculateDbUtil() {
+        return this.transactions.stream().mapToInt(Transaction::getTransactionUtility).sum();
+    }
+    private void initialMinUtil() {
+        int dbUtil = this.calculateDbUtil();
+        this.minUtil = dbUtil * this.threshold;
+    }
     // --------------------------- THRESHOLD RAISING STRATEGIES ---------------------------
 
     /**
@@ -437,8 +446,7 @@ public class StpHuiAlgorithm {
      * measuring execution time and memory usage, and printing the final top-K itemsets.
      */
     public void evaluateTopKPerformance() {
-        this.computeTWU();
-        this.filterLowUtilityItems();
+
 //        System.out.println("Initial Minimum Utility: " + minUtil);
 
         // Measure runtime and memory for the candidate generation process.
@@ -447,6 +455,9 @@ public class StpHuiAlgorithm {
         runtime.gc();
         long memoryBefore = runtime.totalMemory() - runtime.freeMemory();
 
+        this.computeTWU();
+        this.initialMinUtil();
+        this.filterLowUtilityItems();
         List<Itemset> allCandidates = this.generateItemsets();
 
         this.runTime = (System.nanoTime() - startTime) / 1_000_000_000.0;
