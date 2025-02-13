@@ -112,24 +112,20 @@ public class TopKPerformanceEvaluator {
     public void displayResults() {
 
         String datasetTitle = DatasetReader.extractDatasetName(this.filePath);
-        this.plotShortTimeTransactionComparisonChart(this.shortTimeTransactions, datasetTitle);
-        this.plotRunTimeComparisonChart(datasetTitle);
-        this.plotMemoryComparisonChart(datasetTitle);
+        String shortTimeWindow = datasetTitle.equals("korasak") ? "One hour" : "Week";
+        this.plotShortTimeTransactionComparisonChart(this.shortTimeTransactions, datasetTitle, shortTimeWindow);
+        String title = String.format(datasetTitle + ", k = %d, maxPer = %d, threshold = %f", this.k, this.maxPer, this.threshold);
+        this.plotRunTimeComparisonChart(title, shortTimeWindow);
+        this.plotMemoryComparisonChart(title, shortTimeWindow);
     }
 
     /**
      * Plots a bar chart comparing the number of transactions in each short-time dataset segment.
      */
-    private void plotShortTimeTransactionComparisonChart(Map<Integer, Integer> shortTimeTransactions, String title) {
+    private void plotShortTimeTransactionComparisonChart(Map<Integer, Integer> shortTimeTransactions, String title, String shortTimeWindow) {
         List<Integer> weeks = new ArrayList<>(shortTimeTransactions.keySet());
         List<Integer> transactionCounts = new ArrayList<>(shortTimeTransactions.values());
 
-        String shortTimeWindow;
-        if (title.equals("korasak")) {
-            shortTimeWindow = "One Hour";
-        } else {
-            shortTimeWindow = "Week";
-        }
         CategoryChart chart = new CategoryChartBuilder()
                 .width(800)
                 .height(600)
@@ -152,7 +148,7 @@ public class TopKPerformanceEvaluator {
     /**
      * Plots a grouped bar chart comparing memory usage of STP-HUPI and STP-HUI.
      */
-    private void plotMemoryComparisonChart(String title) {
+    private void plotMemoryComparisonChart(String title, String shortTimeWindow) {
         List<Integer> weeks = new ArrayList<>();
         for (int i = 0; i < this.memories1.size(); i++) {
             weeks.add(i + 1);
@@ -161,8 +157,8 @@ public class TopKPerformanceEvaluator {
         CategoryChart chart = new CategoryChartBuilder()
                 .width(700)
                 .height(500)
-                .title(title + ", k = " + this.k + ", maxPer = " + this.maxPer + ", threshold = " + this.threshold)
-                .xAxisTitle("Week")
+                .title(title)
+                .xAxisTitle(shortTimeWindow)
                 .yAxisTitle("Memory (MB)")
                 .build();
 
@@ -180,7 +176,7 @@ public class TopKPerformanceEvaluator {
     /**
      * Plots a grouped bar chart comparing runtime performance of STP-HUPI and STP-HUI.
      */
-    private void plotRunTimeComparisonChart(String title) {
+    private void plotRunTimeComparisonChart(String title, String shortTimeWindow) {
         List<Integer> weeks = new ArrayList<>();
         for (int i = 0; i < this.runTimes1.size(); i++) {
             weeks.add(i + 1);
@@ -189,15 +185,15 @@ public class TopKPerformanceEvaluator {
         CategoryChart chart = new CategoryChartBuilder()
                 .width(700)
                 .height(500)
-                .title(title + ", k = " + this.k + ", maxPer = " + this.maxPer + ", threshold = " + this.threshold)
-                .xAxisTitle("Week")
+                .title(title)
+                .xAxisTitle(shortTimeWindow)
                 .yAxisTitle("Runtime (Sec.)")
                 .build();
 
         chart.getStyler().setLegendPosition(org.knowm.xchart.style.Styler.LegendPosition.OutsideS);
         chart.getStyler().setLegendLayout(org.knowm.xchart.style.Styler.LegendLayout.Horizontal);
-        chart.getStyler().setAvailableSpaceFill(0.3);  // Adjust bar width (smaller value => narrower bars)
-        chart.getStyler().setOverlapped(false);         // Group bars side by side
+        chart.getStyler().setAvailableSpaceFill(0.3);
+        chart.getStyler().setOverlapped(false);
 
         chart.addSeries("STP-HUPI", weeks, this.runTimes1);
         chart.addSeries("STP-HUI", weeks, this.runTimes2);

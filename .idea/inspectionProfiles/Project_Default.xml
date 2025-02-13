@@ -7,7 +7,7 @@
       </Languages>
     </inspection_tool>
     <inspection_tool class="ExtractMethodRecommender" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="minLength" value="526" />
+      <option name="minLength" value="527" />
     </inspection_tool>
   </profile>
 </component>
