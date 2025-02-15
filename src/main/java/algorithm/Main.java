@@ -6,7 +6,7 @@ public class Main {
         String filepath1 = "src/main/java/dataset/retail.txt"; // Currently selected dataset
         String filepath2 = "src/main/java/dataset/ecommerce.txt";
         String filepath3 = "src/main/java/dataset/mushroom.txt";
-        String filepath4 = "src/main/java/dataset/korasak.txt";
+        String filepath4 = "src/main/java/dataset/kosarak.txt";
 
         // Set algorithm parameters
         int k = 50;       // Top-K value (number of high-utility patterns to find)
